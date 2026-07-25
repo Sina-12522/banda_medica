@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis con Gemini</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f4f8;
+    color: #1a2940;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1565C0, #1976D2);
+    color: white;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-icon { font-size: 24px; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header p { font-size: 12px; opacity: 0.85; }
+
+  /* CONTENIDO PRINCIPAL */
+  .content {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* TARJETA DATOS */
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1565C0;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* DATOS BPM Y SPO2 */
+  .datos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .dato-item {
+    background: #f8faff;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #e3eaf5;
+  }
+  .dato-icon { font-size: 22px; margin-bottom: 4px; }
+  .dato-label { font-size: 11px; color: #666; margin-bottom: 2px; }
+  .dato-valor { font-size: 28px; font-weight: 800; }
+  .dato-valor.bpm { color: #e53935; }
+  .dato-valor.spo2 { color: #1976D2; }
+  .dato-unidad { font-size: 12px; color: #888; }
+
+  /* ANÁLISIS */
+  .analisis-resultado {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .resultado-normal { background: #e8f5e9; color: #2e7d32; }
+  .resultado-precaucion { background: #fff8e1; color: #f57f17; }
+  .resultado-critico { background: #ffebee; color: #c62828; }
+
+  .analisis-texto {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-wrap;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 20px;
+    color: #1565C0;
+    font-size: 14px;
+  }
+  .loading-spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #e3eaf5;
+    border-top: 4px solid #1565C0;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* CHAT */
+  .chat-messages {
+    max-height: 220px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-right: 4px;
+  }
+  .mensaje {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .mensaje-usuario {
+    background: #1565C0;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .mensaje-gemini {
+    background: white;
+    color: #1a2940;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e3eaf5;
+  }
+  .mensaje-hora {
+    font-size: 10px;
+    opacity: 0.65;
+    margin-top: 4px;
+    text-align: right;
+  }
+  .gemini-label {
+    font-size: 11px;
+    color: #1565C0;
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* INPUT CHAT */
+  .chat-input-area {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid #e3eaf5;
+    border-radius: 24px;
+    font-size: 13px;
+    outline: none;
+    background: #f8faff;
+  }
+  .chat-input:focus { border-color: #1565C0; }
+  .btn-enviar {
+    background: #1565C0;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-enviar:disabled { opacity: 0.6; }
+
+  /* NAVBAR */
+  .navbar {
+    background: white;
+    border-top: 1px solid #e3eaf5;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 12px;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: #888;
+    cursor: pointer;
+    padding: 4px 10px;
+  }
+  .nav-item.active { color: #1565C0; }
+  .nav-item span:first-child { font-size: 20px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-icon">✦</div>
+  <div>
+    <h1>Análisis con Gemini</h1>
+    <p>Asistente de IA para análisis médico</p>
+  </div>
+</div>
+
+<!-- CONTENIDO -->
+<div class="content">
+
+  <!-- DATOS ANALIZADOS -->
+  <div class="card">
+    <div class="card-title">📊 Datos analizados</div>
+    <div class="datos-grid">
+      <div class="dato-item">
+        <div class="dato-icon">❤️</div>
+        <div class="dato-label">Ritmo cardíaco</div>
+        <div class="dato-valor bpm" id="valorBPM">--</div>
+        <div class="dato-unidad">lpm</div>
+      </div>
+      <div class="dato-item">
+        <div class="dato-icon">💧</div>
+        <div class="dato-label">Oxígeno en sangre</div>
+        <div class="dato-valor spo2" id="valorSpO2">--</div>
+        <div class="dato-unidad">%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANÁLISIS GEMINI -->
+  <div class="card">
+    <div class="card-title">✦ Análisis de Gemini</div>
+    <div id="analisisContainer">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Analizando datos del paciente...
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="card">
+    <div class="card-title">💬 Habla con Gemini</div>
+    <p style="font-size:11px;color:#888;margin-bottom:8px;">Consulta o pregunta sobre los datos del paciente</p>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta..." />
+      <button class="btn-enviar" id="btnEnviar" onclick="enviarMensaje()">Enviar ✈</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="nav-item" onclick="volver()">
+    <span>🏠</span>
+    <span>Inicio</span>
+  </div>
+  <div class="nav-item">
+    <span>👥</span>
+    <span>Pacientes</span>
+  </div>
+  <div class="nav-item">
+    <span>📈</span>
+    <span>Monitoreo</span>
+  </div>
+  <div class="nav-item active">
+    <span>✦</span>
+    <span>Análisis IA</span>
+  </div>
+  <div class="nav-item">
+    <span>⚙️</span>
+    <span>Config.</span>
+  </div>
+</div>
+
+<script>
+  const API_KEY = "TU_API_KEY";
+  const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+
+  let bpm = "--";
+  let spo2 = "--";
+  let promBPM = "--";
+  let promSpO2 = "--";
+  let puntaje = "--";
+  let historialChat = [];
+
+  // Recibir datos desde App Inventor
+  function recibirDatos(datos) {
+    try {
+      const partes = datos.split(",");
+      bpm = partes[0] || "--";
+      spo2 = partes[1] || "--";
+      promBPM = partes[2] || "--";
+      promSpO2 = partes[3] || "--";
+      puntaje = partes[4] || "--";
+
+      document.getElementById("valorBPM").textContent = bpm;
+      document.getElementById("valorSpO2").textContent = spo2;
+
+      analizarAutomatico();
+    } catch(e) {
+      console.error("Error recibiendo datos:", e);
+    }
+  }
+
+  function obtenerHora() {
+    const now = new Date();
+    return now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+  }
+
+  async function analizarAutomatico() {
+    const prompt = `Eres un asistente médico de monitoreo de signos vitales. Analiza estos datos de un paciente:
+- Ritmo cardíaco: ${bpm} BPM
+- Oxígeno en sangre (SpO2): ${spo2}%
+- Promedio BPM: ${promBPM}
+- Promedio SpO2: ${promSpO2}%
+- Puntaje de salud: ${puntaje}/100
+
+Responde en español con:
+1. Resultado general (NORMAL, PRECAUCIÓN o CRÍTICO)
+2. Interpretación breve de cada valor
+3. Una recomendación médica
+
+Sé conciso y claro para un médico.`;
+
+    try {
+      const respuesta = await llamarGemini(prompt);
+      mostrarAnalisis(respuesta);
+      historialChat.push({ role: "model", parts: [{ text: respuesta }] });
+    } catch(e) {
+      document.getElementById("analisisContainer").innerHTML = 
+        '<p style="color:#c62828;font-size:13px;">Error al conectar con Gemini. Verifica tu conexión.</p>';
+    }
+  }
+
+  function mostrarAnalisis(texto) {
+    let claseResultado = "resultado-normal";
+    let iconoResultado = "✅";
+    let textoResultado = "Resultado general: NORMAL";
+
+    if (texto.includes("CRÍTICO") || texto.includes("CRITICO")) {
+      claseResultado = "resultado-critico";
+      iconoResultado = "🚨";
+      textoResultado = "Resultado general: CRÍTICO";
+    } else if (texto.includes("PRECAUCIÓN") || texto.includes("PRECAUCION")) {
+      claseResultado = "resultado-precaucion";
+      iconoResultado = "⚠️";
+      textoResultado = "Resultado general: PRECAUCIÓN";
+    }
+
+    document.getElementById("analisisContainer").innerHTML = `
+      <div class="analisis-resultado ${claseResultado}">
+        ${iconoResultado} ${textoResultado}
+      </div>
+      <div class="analisis-texto">${texto}</div>
+    `;
+  }
+
+  async function enviarMensaje() {
+    const input = document.getElementById("chatInput");
+    const mensaje = input.value.trim();
+    if (!mensaje) return;
+
+    input.value = "";
+    document.getElementById("btnEnviar").disabled = true;
+
+    agregarMensajeChat("usuario", mensaje);
+
+    historialChat.push({ role: "user", parts: [{ text: mensaje }] });
+
+    const contexto = `Contexto del paciente - BPM: ${bpm}, SpO2: ${spo2}%, Promedio BPM: ${promBPM}, Promedio SpO2: ${promSpO2}%, Puntaje: ${puntaje}/100. `;
+    
+    try {
+      const respuesta = await llamarGemini(contexto + mensaje);
+      agregarMensajeChat("gemini", respuesta);
+      historialChat.push({ role: "model", parts: [{ text: respuesta }] });
+    } catch(e) {
+      agregarMensajeChat("gemini", "Error al conectar con Gemini. Verifica tu conexión a internet.");
+    }
+
+    document.getElementById("btnEnviar").disabled = false;
+  }
+
+  function agregarMensajeChat(tipo, texto) {
+    const container = document.getElementById("chatMessages");
+    const hora = obtenerHora();
+
+    if (tipo === "usuario") {
+      container.innerHTML += `
+        <div style="display:flex;justify-content:flex-end;">
+          <div class="mensaje mensaje-usuario">
+            ${texto}
+            <div class="mensaje-hora">${hora} ✓✓</div>
+          </div>
+        </div>`;
+    } else {
+      container.innerHTML += `
+        <div style="display:flex;justify-content:flex-start;">
+          <div class="mensaje mensaje-gemini">
+            <div class="gemini-label">✦ Gemini</div>
+            ${texto}
+            <div class="mensaje-hora" style="color:#888;">${hora}</div>
+          </div>
+        </div>`;
+    }
+    container.scrollTop = container.scrollHeight;
+  }
+
+  async function llamarGemini(prompt) {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 500, temperature: 0.7 }
+      })
+    });
+
+    if (!response.ok) throw new Error("Error API");
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+  }
+
+  function volver() {
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString("volver");
+    }
+  }
+
+  // Escuchar datos desde App Inventor
+  window.addEventListener("message", function(e) {
+    if (e.data) recibirDatos(e.data);
+  });
+
+  // Para pruebas en navegador
+  window.onload = function() {
+    // Datos de prueba (se sobreescriben cuando App Inventor manda los reales)
+    setTimeout(() => {
+      if (bpm === "--") recibirDatos("73,98,75,97,100");
+    }, 500);
+  };
+</script>
+
+</body>
+</html>
