@@ -6,7 +6,6 @@
 <title>Análisis con Gemini</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  
   body {
     font-family: 'Segoe UI', sans-serif;
     background: #f0f4f8;
@@ -15,8 +14,6 @@
     display: flex;
     flex-direction: column;
   }
-
-  /* HEADER */
   .header {
     background: linear-gradient(135deg, #1565C0, #1976D2);
     color: white;
@@ -29,8 +26,6 @@
   .header-icon { font-size: 24px; }
   .header h1 { font-size: 18px; font-weight: 700; }
   .header p { font-size: 12px; opacity: 0.85; }
-
-  /* CONTENIDO PRINCIPAL */
   .content {
     flex: 1;
     padding: 12px;
@@ -40,8 +35,6 @@
     gap: 12px;
     padding-bottom: 70px;
   }
-
-  /* TARJETA DATOS */
   .card {
     background: white;
     border-radius: 16px;
@@ -57,8 +50,6 @@
     align-items: center;
     gap: 6px;
   }
-
-  /* DATOS BPM Y SPO2 */
   .datos-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -77,8 +68,6 @@
   .dato-valor.bpm { color: #e53935; }
   .dato-valor.spo2 { color: #1976D2; }
   .dato-unidad { font-size: 12px; color: #888; }
-
-  /* ANÁLISIS */
   .analisis-resultado {
     display: flex;
     align-items: center;
@@ -92,14 +81,12 @@
   .resultado-normal { background: #e8f5e9; color: #2e7d32; }
   .resultado-precaucion { background: #fff8e1; color: #f57f17; }
   .resultado-critico { background: #ffebee; color: #c62828; }
-
   .analisis-texto {
     font-size: 13px;
     line-height: 1.6;
     color: #333;
     white-space: pre-wrap;
   }
-
   .loading {
     text-align: center;
     padding: 20px;
@@ -116,8 +103,6 @@
     margin: 0 auto 10px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* CHAT */
   .chat-messages {
     max-height: 220px;
     overflow-y: auto;
@@ -162,8 +147,6 @@
     align-items: center;
     gap: 4px;
   }
-
-  /* INPUT CHAT */
   .chat-input-area {
     display: flex;
     gap: 8px;
@@ -190,8 +173,6 @@
     cursor: pointer;
     white-space: nowrap;
   }
-
-  /* MODAL CONFIGURACIÓN SIMULADA */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -209,8 +190,6 @@
     max-width: 320px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
-
-  /* NAVBAR */
   .navbar {
     position: fixed;
     bottom: 0;
@@ -239,7 +218,6 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-icon">✦</div>
   <div>
@@ -248,10 +226,7 @@
   </div>
 </div>
 
-<!-- CONTENIDO -->
 <div class="content">
-
-  <!-- DATOS ANALIZADOS -->
   <div class="card">
     <div class="card-title">📊 Datos analizados</div>
     <div class="datos-grid">
@@ -270,7 +245,6 @@
     </div>
   </div>
 
-  <!-- ANÁLISIS GEMINI -->
   <div class="card">
     <div class="card-title">✦ Análisis de Gemini</div>
     <div id="analisisContainer">
@@ -281,7 +255,6 @@
     </div>
   </div>
 
-  <!-- CHAT -->
   <div class="card">
     <div class="card-title">💬 Habla con Gemini</div>
     <p style="font-size:11px;color:#888;margin-bottom:8px;">Consulta o pregunta sobre los datos del paciente</p>
@@ -291,10 +264,8 @@
       <button class="btn-enviar" id="btnEnviar" onclick="enviarMensaje()">Enviar ✈</button>
     </div>
   </div>
-
 </div>
 
-<!-- MODAL DE CONFIGURACIÓN -->
 <div class="modal-overlay" id="modalConfig">
   <div class="modal-box">
     <h3 style="color:#1565C0; margin-bottom:12px; font-size:16px;">⚙️ Configuración del Sistema</h3>
@@ -308,7 +279,6 @@
   </div>
 </div>
 
-<!-- NAVBAR INFERIOR -->
 <div class="navbar">
   <div class="nav-item" onclick="navegar('IR_SCREEN2')">
     <span>🏠</span>
@@ -335,20 +305,22 @@
 <script>
   let bpm = "--";
   let spo2 = "--";
-  let promBPM = "--";
-  let promSpO2 = "--";
-  let puntaje = "--";
+  let ultimaCadena = "";
 
-  // 1. Recibir datos desde App Inventor
+  function extraerTextoGemini(jsonStr) {
+    try {
+      var data = JSON.parse(jsonStr);
+      return data.candidates[0].content.parts[0].text;
+    } catch(e) {
+      return jsonStr;
+    }
+  }
+
   function recibirDatos(datos) {
     try {
       const partes = datos.split(",");
       bpm = partes[0] || "--";
       spo2 = partes[1] || "--";
-      promBPM = partes[2] || "--";
-      promSpO2 = partes[3] || "--";
-      puntaje = partes[4] || "--";
-
       document.getElementById("valorBPM").textContent = bpm;
       document.getElementById("valorSpO2").textContent = spo2;
     } catch(e) {
@@ -356,7 +328,6 @@
     }
   }
 
-  // 2. Muestra el Análisis recibido desde App Inventor
   function mostrarRespuestaGemini(respuesta) {
     let claseResultado = "resultado-normal";
     let iconoResultado = "✅";
@@ -372,12 +343,10 @@
       textoResultado = "Resultado general: PRECAUCIÓN";
     }
 
-    document.getElementById("analisisContainer").innerHTML = `
-      <div class="analisis-resultado ${claseResultado}">
-        ${iconoResultado} ${textoResultado}
-      </div>
-      <div class="analisis-texto">${respuesta}</div>
-    `;
+    document.getElementById("analisisContainer").innerHTML =
+      '<div class="analisis-resultado ' + claseResultado + '">' +
+      iconoResultado + ' ' + textoResultado +
+      '</div><div class="analisis-texto">' + respuesta + '</div>';
   }
 
   function obtenerHora() {
@@ -385,16 +354,12 @@
     return now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
   }
 
-  // 3. Envía la pregunta del usuario a App Inventor a través de WebViewString
   function enviarMensaje() {
     const input = document.getElementById("chatInput");
     const mensaje = input.value.trim();
     if (!mensaje) return;
-
     input.value = "";
     agregarMensajeChat("usuario", mensaje);
-
-    // Se lo pasa a App Inventor para que él haga la llamada segura
     if (window.AppInventor) {
       window.AppInventor.setWebViewString("CHAT:" + mensaje);
     }
@@ -403,36 +368,20 @@
   function agregarMensajeChat(tipo, texto) {
     const container = document.getElementById("chatMessages");
     const hora = obtenerHora();
-
     if (tipo === "usuario") {
-      container.innerHTML += `
-        <div style="display:flex;justify-content:flex-end;">
-          <div class="mensaje mensaje-usuario">
-            ${texto}
-            <div class="mensaje-hora">${hora} ✓✓</div>
-          </div>
-        </div>`;
+      container.innerHTML += '<div style="display:flex;justify-content:flex-end;"><div class="mensaje mensaje-usuario">' + texto + '<div class="mensaje-hora">' + hora + ' ✓✓</div></div></div>';
     } else {
-      container.innerHTML += `
-        <div style="display:flex;justify-content:flex-start;">
-          <div class="mensaje mensaje-gemini">
-            <div class="gemini-label">✦ Gemini</div>
-            ${texto}
-            <div class="mensaje-hora" style="color:#888;">${hora}</div>
-          </div>
-        </div>`;
+      container.innerHTML += '<div style="display:flex;justify-content:flex-start;"><div class="mensaje mensaje-gemini"><div class="gemini-label">✦ Gemini</div>' + texto + '<div class="mensaje-hora" style="color:#888;">' + hora + '</div></div></div>';
     }
     container.scrollTop = container.scrollHeight;
   }
 
-  // 4. Navegación entre pantallas de App Inventor
   function navegar(comando) {
     if (window.AppInventor) {
       window.AppInventor.setWebViewString(comando);
     }
   }
 
-  // 5. Controles del Modal de Configuración
   function abrirConfig() {
     document.getElementById("modalConfig").style.display = "flex";
   }
@@ -441,17 +390,19 @@
     document.getElementById("modalConfig").style.display = "none";
   }
 
-  // 6. Revisar si App Inventor devuelve respuestas o comandos
   function revisarComandosAppInventor() {
     if (window.AppInventor) {
       var texto = window.AppInventor.getWebViewString();
-      if (texto && texto !== "") {
+      if (texto && texto !== "" && texto !== ultimaCadena) {
+        ultimaCadena = texto;
         if (texto.startsWith("RESPUESTA_ANALISIS:")) {
-          var analisis = texto.replace("RESPUESTA_ANALISIS:", "");
-          mostrarRespuestaGemini(analisis);
+          var jsonStr = texto.replace("RESPUESTA_ANALISIS:", "");
+          var respuesta = extraerTextoGemini(jsonStr);
+          mostrarRespuestaGemini(respuesta);
         } else if (texto.startsWith("RESPUESTA_CHAT:")) {
-          var chat = texto.replace("RESPUESTA_CHAT:", "");
-          agregarMensajeChat("gemini", chat);
+          var jsonStr = texto.replace("RESPUESTA_CHAT:", "");
+          var respuesta = extraerTextoGemini(jsonStr);
+          agregarMensajeChat("gemini", respuesta);
         }
       }
     }
@@ -459,7 +410,6 @@
 
   setInterval(revisarComandosAppInventor, 400);
 
-  // Escuchar datos de prueba/reales enviados vía postMessage
   window.addEventListener("message", function(e) {
     if (e.data) recibirDatos(e.data);
   });
