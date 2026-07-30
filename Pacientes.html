@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pacientes - Hospital Dr. José Gregorio Hernández</title>
+<style>
+  :root {
+    --azul: #1565C0;
+    --azul-claro: #1976D2;
+    --azul-fondo: #EEF2FB;
+    --verde: #2E7D32;
+    --verde-claro: #E8F5E9;
+    --amarillo: #F57F17;
+    --amarillo-claro: #FFF8E1;
+    --rojo: #C62828;
+    --rojo-claro: #FFEBEE;
+    --gris: #64748B;
+    --gris-claro: #F8FAFF;
+    --borde: #E3EAF5;
+    --texto: #1A2940;
+    --blanco: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #F0F4F8;
+    color: var(--texto);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--blanco);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--borde);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: var(--azul-fondo);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo svg { width: 20px; height: 20px; }
+  .header-title { font-size: 15px; font-weight: 700; color: var(--texto); }
+  .header-sub { font-size: 11px; color: var(--gris); }
+  .btn-notif {
+    width: 36px; height: 36px;
+    background: var(--azul-fondo);
+    border-radius: 10px;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+  }
+  .btn-notif svg { width: 18px; height: 18px; }
+  .notif-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: var(--rojo);
+    color: white; font-size: 9px; font-weight: 700;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* CONTENIDO */
+  .content {
+    flex: 1;
+    padding: 12px;
+    padding-bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* BIENVENIDA */
+  .bienvenida {
+    background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+    border-radius: 16px;
+    padding: 16px;
+    color: white;
+  }
+  .bienvenida-nombre { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+  .bienvenida-sub { font-size: 12px; opacity: 0.85; margin-bottom: 14px; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .stat-item svg { width: 20px; height: 20px; margin-bottom: 4px; opacity: 0.9; }
+  .stat-num { font-size: 22px; font-weight: 800; line-height: 1; }
+  .stat-num.alerta { color: #FFD54F; }
+  .stat-label { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+
+  /* BUSCAR */
+  .buscar-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .buscar-input-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .buscar-input-wrap svg {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px;
+    color: var(--gris);
+  }
+  .buscar-input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1.5px solid var(--borde);
+    border-radius: 12px;
+    font-size: 13px;
+    background: var(--blanco);
+    outline: none;
+    color: var(--texto);
+  }
+  .buscar-input:focus { border-color: var(--azul); }
+  .btn-filtrar {
+    padding: 10px 14px;
+    background: var(--blanco);
+    border: 1.5px solid var(--borde);
+    border-radius: 12px;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600;
+    color: var(--texto);
+    cursor: pointer; white-space: nowrap;
+  }
+  .btn-filtrar svg { width: 14px; height: 14px; }
+
+  /* LISTA PACIENTES */
+  .seccion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .seccion-titulo { font-size: 14px; font-weight: 700; }
+  .seccion-link {
+    font-size: 12px;
+    color: var(--azul);
+    font-weight: 600;
+    background: none; border: none;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .sincronizado {
+    font-size: 11px;
+    color: var(--verde);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .sincronizado svg { width: 12px; height: 12px; }
+
+  .paciente-card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--borde);
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    margin-bottom: 8px;
+  }
+  .paciente-card:active { box-shadow: 0 2px 8px rgba(21,101,192,0.15); }
+
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .paciente-info { flex: 1; min-width: 0; }
+  .paciente-nombre { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .paciente-sub { font-size: 11px; color: var(--gris); margin-bottom: 6px; }
+  .paciente-vitales {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .vital {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600;
+  }
+  .vital svg { width: 13px; height: 13px; }
+  .vital.bpm { color: #E53935; }
+  .vital.spo2 { color: var(--azul-claro); }
+
+  .estado-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .estado-estable { background: var(--verde-claro); color: var(--verde); }
+  .estado-observacion { background: var(--amarillo-claro); color: var(--amarillo); }
+  .estado-alerta { background: var(--rojo-claro); color: var(--rojo); }
+
+  .paciente-arrow { color: var(--gris); }
+  .paciente-arrow svg { width: 16px; height: 16px; }
+
+  /* BOTÓN REGISTRAR */
+  .btn-registrar {
+    background: var(--azul);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-registrar svg { width: 18px; height: 18px; }
+
+  /* NAVBAR */
+  .navbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--blanco);
+    border-top: 1px solid var(--borde);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 12px;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--gris);
+    cursor: pointer;
+    padding: 4px 12px;
+    border: none;
+    background: none;
+    flex: 1;
+  }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item.active { color: var(--azul); font-weight: 700; }
+  .nav-item.active svg path,
+  .nav-item.active svg circle,
+  .nav-item.active svg rect { stroke: var(--azul); }
+
+  /* MODAL REGISTRO PACIENTE */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    overflow-y: auto;
+  }
+  .modal-overlay.activo { display: flex; }
+  .modal {
+    background: var(--blanco);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    margin-top: auto;
+    padding: 20px 16px;
+    min-height: 85vh;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .modal-titulo { font-size: 16px; font-weight: 700; }
+  .modal-sub { font-size: 12px; color: var(--gris); }
+  .btn-cerrar {
+    width: 32px; height: 32px;
+    background: var(--azul-fondo);
+    border-radius: 50%;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .btn-cerrar svg { width: 16px; height: 16px; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--azul-fondo);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    color: var(--gris);
+    cursor: pointer;
+  }
+  .tab.active {
+    background: var(--blanco);
+    color: var(--azul);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  /* SECCIONES DEL FORM */
+  .form-seccion {
+    margin-bottom: 16px;
+  }
+  .form-seccion-titulo {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .form-seccion-titulo svg { width: 16px; height: 16px; }
+
+  .form-grupo { margin-bottom: 10px; }
+  .form-label {
+    font-size: 11px;
+    color: var(--gris);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    font-size: 13px;
+    background: var(--blanco);
+    color: var(--texto);
+    outline: none;
+    font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--azul);
+  }
+  .form-textarea { resize: none; height: 70px; }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn-guardar {
+    background: var(--azul);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-guardar svg { width: 18px; height: 18px; }
+  .btn-cancelar {
+    background: none;
+    color: var(--azul);
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    width: 100%;
+    padding: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  /* LISTA VACÍA */
+  .lista-vacia {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--gris);
+  }
+  .lista-vacia svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .lista-vacia p { font-size: 13px; }
+
+  /* FILTRO */
+  .filtro-panel {
+    display: none;
+    background: var(--blanco);
+    border-radius: 14px;
+    border: 1px solid var(--borde);
+    padding: 14px;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .filtro-panel.activo { display: flex; }
+  .filtro-titulo { font-size: 12px; font-weight: 700; color: var(--gris); margin-bottom: 4px; }
+  .filtro-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filtro-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--borde);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    background: var(--blanco);
+    color: var(--texto);
+  }
+  .filtro-btn.activo-filtro { border-color: var(--azul); background: var(--azul-fondo); color: var(--azul); }
+  .filtro-btn.rojo { border-color: var(--rojo); background: var(--rojo-claro); color: var(--rojo); }
+  .filtro-btn.amarillo { border-color: var(--amarillo); background: var(--amarillo-claro); color: var(--amarillo); }
+  .filtro-btn.verde { border-color: var(--verde); background: var(--verde-claro); color: var(--verde); }
+
+  /* ACCIONES PACIENTE */
+  .paciente-acciones {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .btn-accion {
+    flex: 1;
+    padding: 6px;
+    border-radius: 8px;
+    border: 1.5px solid var(--borde);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: var(--blanco);
+  }
+  .btn-accion svg { width: 13px; height: 13px; }
+  .btn-accion.ver { color: var(--azul); border-color: var(--azul); background: var(--azul-fondo); }
+  .btn-accion.editar { color: var(--amarillo); border-color: var(--amarillo); background: var(--amarillo-claro); }
+  .btn-accion.eliminar { color: var(--rojo); border-color: var(--rojo); background: var(--rojo-claro); }
+
+  /* MODAL VER PACIENTE */
+  .detalle-seccion { margin-bottom: 14px; }
+  .detalle-titulo {
+    font-size: 12px; font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid var(--borde);
+    padding-bottom: 6px;
+  }
+  .detalle-titulo svg { width: 14px; height: 14px; }
+  .detalle-fila {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--azul-fondo);
+    font-size: 13px;
+  }
+  .detalle-key { color: var(--gris); font-size: 12px; }
+  .detalle-val { font-weight: 600; text-align: right; max-width: 60%; }
+  .toast {
+    position: fixed;
+    bottom: 80px; left: 16px; right: 16px;
+    background: var(--texto);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 300;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.activo { display: flex; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .toast svg { width: 18px; height: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.53 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 16z"/>
+        <path d="M9 2H5a3 3 0 0 0-3 3v3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Hospital Dr. JGH</div>
+      <div class="header-sub">Sistema de monitoreo</div>
+    </div>
+  </div>
+  <button class="btn-notif" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9,22 9,12 15,12 15,22"/>
+    </svg>
+  </button>
+</div>
+
+<!-- CONTENIDO -->
+<div class="content">
+
+  <!-- BIENVENIDA -->
+  <div class="bienvenida">
+    <div class="bienvenida-nombre">Hola, Dr. Benito Díaz</div>
+    <div class="bienvenida-sub">Resumen general en tiempo real</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <div class="stat-num" id="totalPacientes">0</div>
+        <div class="stat-label">Pacientes</div>
+      </div>
+      <div class="stat-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <div class="stat-num alerta" id="totalAlertas">0</div>
+        <div class="stat-label">Alertas activas</div>
+      </div>
+      <div class="stat-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <div class="stat-num" id="totalMonitor">0</div>
+        <div class="stat-label">Monitoreados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSCAR -->
+  <div class="buscar-row">
+    <div class="buscar-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" class="buscar-input" id="inputBuscar" placeholder="Buscar paciente..." oninput="buscarPaciente(this.value)"/>
+    </div>
+    <button class="btn-filtrar" onclick="toggleFiltro()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      Filtrar
+    </button>
+  </div>
+
+  <!-- PANEL FILTRO -->
+  <div class="filtro-panel" id="filtroPanel">
+    <div class="filtro-titulo">FILTRAR POR ESTADO</div>
+    <div class="filtro-opciones">
+      <button class="filtro-btn activo-filtro" onclick="aplicarFiltro('todos', this)">Todos</button>
+      <button class="filtro-btn verde" onclick="aplicarFiltro('Estable', this)">● Estables</button>
+      <button class="filtro-btn amarillo" onclick="aplicarFiltro('Observación', this)">● Observación</button>
+      <button class="filtro-btn rojo" onclick="aplicarFiltro('Alerta', this)">● Alertas</button>
+    </div>
+    <div class="filtro-titulo" style="margin-top:4px;">ORDENAR POR</div>
+    <div class="filtro-opciones">
+      <button class="filtro-btn activo-filtro" onclick="aplicarOrden('recientes', this)">Más recientes</button>
+      <button class="filtro-btn" onclick="aplicarOrden('az', this)">A → Z</button>
+      <button class="filtro-btn" onclick="aplicarOrden('id', this)">Por ID</button>
+    </div>
+  </div>
+
+  <!-- LISTA DE PACIENTES -->
+  <div>
+    <div class="seccion-header">
+      <div class="seccion-titulo">Pacientes monitoreados</div>
+      <div class="sincronizado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Sincronizado
+      </div>
+    </div>
+    <div id="listaPacientes">
+      <div class="lista-vacia">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        <p>No hay pacientes registrados.<br>Registra el primero usando el botón de abajo.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN REGISTRAR -->
+  <button class="btn-registrar" onclick="abrirModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Registrar nuevo paciente
+  </button>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <button class="nav-item active" onclick="navegar('IR_SCREEN4')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9,22 9,12 15,12 15,22"/>
+    </svg>
+    Inicio
+  </button>
+  <button class="nav-item active" onclick="">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+    </svg>
+    Pacientes
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    Monitoreo
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN6')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+    Reportes
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN5')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M20 21a8 8 0 1 0-16 0"/>
+      <line x1="12" y1="12" x2="12" y2="21"/>
+      <line x1="8" y1="17" x2="16" y2="17"/>
+    </svg>
+    Doctores
+  </button>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div class="modal-overlay" id="modalRegistro">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-titulo">Nuevo Paciente</div>
+        <div class="modal-sub">Registrar información médica</div>
+      </div>
+      <button class="btn-cerrar" onclick="cerrarModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" id="tab1" onclick="cambiarTab(1)">Datos Personales</button>
+      <button class="tab" id="tab2" onclick="cambiarTab(2)">Signos Vitales</button>
+      <button class="tab" id="tab3" onclick="cambiarTab(3)">Historial Clínico</button>
+    </div>
+
+    <!-- TAB 1: DATOS PERSONALES -->
+    <div id="contenido-tab1">
+      <div class="form-seccion">
+        <div class="form-seccion-titulo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Información Personal
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Nombre completo</label>
+          <input type="text" class="form-input" id="p_nombre" placeholder="Ej: Ana Martínez"/>
+        </div>
+        <div class="form-row">
+          <div class="form-grupo">
+            <label class="form-label">Fecha de nacimiento</label>
+            <input type="date" class="form-input" id="p_fecha_nac"/>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Edad</label>
+            <input type="number" class="form-input" id="p_edad" placeholder="Años"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-grupo">
+            <label class="form-label">Sexo</label>
+            <select class="form-select" id="p_sexo">
+              <option value="">Seleccionar</option>
+              <option>Masculino</option>
+              <option>Femenino</option>
+            </select>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Cédula / ID</label>
+            <input type="text" class="form-input" id="p_cedula" placeholder="V-12345678"/>
+          </div>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" class="form-input" id="p_telefono" placeholder="0412-555-1234"/>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Dirección</label>
+          <input type="text" class="form-input" id="p_direccion" placeholder="Av. Principal, Trujillo"/>
+        </div>
+      </div>
+      <button class="btn-guardar" onclick="cambiarTab(2)">
+        Siguiente
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- TAB 2: SIGNOS VITALES -->
+    <div id="contenido-tab2" style="display:none;">
+      <div class="form-seccion">
+        <div class="form-seccion-titulo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Parámetros de Monitoreo
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">BPM normal del paciente</label>
+          <input type="number" class="form-input" id="p_bpm_normal" placeholder="Ej: 75"/>
+        </div>
+        <div class="form-row">
+          <div class="form-grupo">
+            <label class="form-label">BPM mínimo aceptable</label>
+            <input type="number" class="form-input" id="p_bpm_min" placeholder="60"/>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">BPM máximo aceptable</label>
+            <input type="number" class="form-input" id="p_bpm_max" placeholder="100"/>
+          </div>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">SpO2 mínimo aceptable (%)</label>
+          <input type="number" class="form-input" id="p_spo2_min" placeholder="95"/>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Médico responsable</label>
+          <select class="form-select" id="p_medico">
+            <option value="Dr. Benito Díaz">Dr. Benito Díaz - Jefe de Emergencias</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-guardar" onclick="cambiarTab(3)">
+        Siguiente
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- TAB 3: HISTORIAL CLÍNICO -->
+    <div id="contenido-tab3" style="display:none;">
+      <div class="form-seccion">
+        <div class="form-seccion-titulo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Información Médica
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Tipo de sangre</label>
+          <select class="form-select" id="p_sangre">
+            <option value="">Seleccionar</option>
+            <option>O+</option><option>O-</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Alergias conocidas</label>
+          <input type="text" class="form-input" id="p_alergias" placeholder="Ej: Penicilina, Ninguna"/>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Enfermedades previas</label>
+          <textarea class="form-textarea" id="p_enfermedades" placeholder="Ej: Hipertensión, Diabetes..."></textarea>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Medicamentos actuales</label>
+          <textarea class="form-textarea" id="p_medicamentos" placeholder="Ej: Losartán 50mg (1 vez al día)"></textarea>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Observaciones del médico</label>
+          <textarea class="form-textarea" id="p_observaciones" placeholder="Observaciones adicionales..."></textarea>
+        </div>
+      </div>
+      <button class="btn-guardar" onclick="guardarPaciente()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Guardar y sincronizar
+      </button>
+      <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER PACIENTE -->
+<div class="modal-overlay" id="modalVerPaciente">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-titulo">Datos del Paciente</div>
+        <div class="modal-sub" id="ver-subtitulo">Información completa</div>
+      </div>
+      <button class="btn-cerrar" onclick="cerrarModalVer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Avatar y nombre -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px;background:var(--azul-fondo);border-radius:12px;">
+      <div class="avatar" id="ver-avatar" style="width:48px;height:48px;font-size:16px;"></div>
+      <div>
+        <div style="font-size:16px;font-weight:700;" id="ver-nombre"></div>
+        <div style="font-size:12px;color:var(--gris);" id="ver-id"></div>
+        <div id="ver-estado-badge" style="margin-top:4px;display:inline-block;"></div>
+      </div>
+    </div>
+
+    <div class="detalle-seccion">
+      <div class="detalle-titulo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Información Personal
+      </div>
+      <div class="detalle-fila"><span class="detalle-key">Cédula</span><span class="detalle-val" id="ver-cedula"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Edad</span><span class="detalle-val" id="ver-edad"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Sexo</span><span class="detalle-val" id="ver-sexo"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Fecha de nac.</span><span class="detalle-val" id="ver-fecha"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Teléfono</span><span class="detalle-val" id="ver-telefono"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Dirección</span><span class="detalle-val" id="ver-direccion"></span></div>
+    </div>
+
+    <div class="detalle-seccion">
+      <div class="detalle-titulo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Parámetros de Monitoreo
+      </div>
+      <div class="detalle-fila"><span class="detalle-key">BPM normal</span><span class="detalle-val" id="ver-bpm-normal"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Rango BPM</span><span class="detalle-val" id="ver-bpm-rango"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">SpO2 mínimo</span><span class="detalle-val" id="ver-spo2-min"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Médico responsable</span><span class="detalle-val" id="ver-medico"></span></div>
+    </div>
+
+    <div class="detalle-seccion">
+      <div class="detalle-titulo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Historial Clínico
+      </div>
+      <div class="detalle-fila"><span class="detalle-key">Tipo de sangre</span><span class="detalle-val" id="ver-sangre"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Alergias</span><span class="detalle-val" id="ver-alergias"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Enfermedades</span><span class="detalle-val" id="ver-enfermedades"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Medicamentos</span><span class="detalle-val" id="ver-medicamentos"></span></div>
+      <div class="detalle-fila"><span class="detalle-key">Observaciones</span><span class="detalle-val" id="ver-observaciones"></span></div>
+    </div>
+
+    <button class="btn-guardar" onclick="editarDesdeVer()" style="background:var(--amarillo);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Editar datos
+    </button>
+    <button class="btn-cancelar" onclick="cerrarModalVer()">Cerrar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+  <span id="toast-msg">Paciente guardado correctamente</span>
+</div>
+
+<script>
+  // ============ VARIABLES ============
+  var pacientes = [];
+  var ultimaCadena = "";
+  var coloresAvatar = ["#1565C0","#2E7D32","#6A1B9A","#E65100","#00695C","#AD1457"];
+
+  // ============ INICIALIZAR ============
+  window.onload = function() {
+    cargarPacientes();
+    actualizarStats();
+  };
+
+  // ============ NAVEGACIÓN ============
+  function navegar(comando) {
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString(comando);
+    }
+  }
+
+  // ============ MODAL ============
+  function abrirModal() {
+    document.getElementById("modalRegistro").classList.add("activo");
+    cambiarTab(1);
+    limpiarForm();
+  }
+
+  function cerrarModal() {
+    document.getElementById("modalRegistro").classList.remove("activo");
+  }
+
+  function cambiarTab(num) {
+    for (var i = 1; i <= 3; i++) {
+      document.getElementById("tab" + i).classList.remove("active");
+      document.getElementById("contenido-tab" + i).style.display = "none";
+    }
+    document.getElementById("tab" + num).classList.add("active");
+    document.getElementById("contenido-tab" + num).style.display = "block";
+  }
+
+  function limpiarForm() {
+    var campos = ["p_nombre","p_fecha_nac","p_edad","p_cedula","p_telefono",
+                  "p_direccion","p_bpm_normal","p_bpm_min","p_bpm_max",
+                  "p_spo2_min","p_alergias","p_enfermedades","p_medicamentos","p_observaciones"];
+    campos.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    document.getElementById("p_sexo").value = "";
+    document.getElementById("p_sangre").value = "";
+  }
+
+  // ============ GUARDAR PACIENTE ============
+  function guardarPaciente() {
+    var nombre = document.getElementById("p_nombre").value.trim();
+    if (!nombre) {
+      mostrarToast("⚠️ El nombre es obligatorio");
+      cambiarTab(1);
+      return;
+    }
+
+    var cedula = document.getElementById("p_cedula").value.trim();
+    if (!cedula) {
+      mostrarToast("⚠️ La cédula es obligatoria");
+      cambiarTab(1);
+      return;
+    }
+
+    var paciente = {
+      id: "P" + (10024 + pacientes.length),
+      nombre: nombre,
+      fecha_nac: document.getElementById("p_fecha_nac").value,
+      edad: document.getElementById("p_edad").value,
+      sexo: document.getElementById("p_sexo").value,
+      cedula: cedula,
+      telefono: document.getElementById("p_telefono").value,
+      direccion: document.getElementById("p_direccion").value,
+      bpm_normal: document.getElementById("p_bpm_normal").value || "75",
+      bpm_min: document.getElementById("p_bpm_min").value || "60",
+      bpm_max: document.getElementById("p_bpm_max").value || "100",
+      spo2_min: document.getElementById("p_spo2_min").value || "95",
+      medico: document.getElementById("p_medico").value,
+      sangre: document.getElementById("p_sangre").value,
+      alergias: document.getElementById("p_alergias").value,
+      enfermedades: document.getElementById("p_enfermedades").value,
+      medicamentos: document.getElementById("p_medicamentos").value,
+      observaciones: document.getElementById("p_observaciones").value,
+      bpm_actual: "--",
+      spo2_actual: "--",
+      estado: "Estable",
+      fecha_registro: new Date().toLocaleDateString("es-VE"),
+      color: coloresAvatar[pacientes.length % coloresAvatar.length]
+    };
+
+    pacientes.push(paciente);
+    guardarEnStorage();
+    renderizarLista(pacientes);
+    actualizarStats();
+    cerrarModal();
+    mostrarToast("✅ Paciente registrado correctamente");
+
+    // Enviar a App Inventor para guardar en TinyDB
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(paciente));
+    }
+  }
+
+  // ============ STORAGE LOCAL ============
+  function guardarEnStorage() {
+    try {
+      localStorage.setItem("pacientes_hjgh", JSON.stringify(pacientes));
+    } catch(e) {}
+  }
+
+  function cargarPacientes() {
+    try {
+      var datos = localStorage.getItem("pacientes_hjgh");
+      if (datos) {
+        pacientes = JSON.parse(datos);
+        renderizarLista(pacientes);
+      }
+    } catch(e) {}
+  }
+
+  // ============ RENDERIZAR LISTA ============
+  function renderizarLista(lista) {
+    var contenedor = document.getElementById("listaPacientes");
+    if (lista.length === 0) {
+      contenedor.innerHTML = '<div class="lista-vacia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><p>No hay pacientes registrados.<br>Registra el primero usando el botón de abajo.</p></div>';
+      return;
+    }
+
+    var html = "";
+    lista.forEach(function(p, idx) {
+      var iniciales = p.nombre.split(" ").slice(0,2).map(function(n){ return n[0]; }).join("");
+      var claseBadge = p.estado === "Alerta" ? "estado-alerta" : p.estado === "Observación" ? "estado-observacion" : "estado-estable";
+      html += '<div class="paciente-card">' +
+        '<div class="avatar" style="background:' + p.color + '">' + iniciales + '</div>' +
+        '<div class="paciente-info">' +
+          '<div class="paciente-nombre">' + p.nombre + '</div>' +
+          '<div class="paciente-sub">' + p.id + ' · ' + (p.edad ? p.edad + ' años' : 'Sin edad') + ' · ' + (p.sexo || 'Sin sexo') + '</div>' +
+          '<div class="paciente-vitales">' +
+            '<span class="vital bpm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' + p.bpm_actual + ' lpm</span>' +
+            '<span class="vital spo2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' + p.spo2_actual + '%</span>' +
+            '<span class="estado-badge ' + claseBadge + '">' + p.estado + '</span>' +
+          '</div>' +
+          '<div class="paciente-acciones">' +
+            '<button class="btn-accion ver" onclick="verPacienteDetalle(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Ver</button>' +
+            '<button class="btn-accion editar" onclick="editarPaciente(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>' +
+            '<button class="btn-accion eliminar" onclick="eliminarPaciente(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Eliminar</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    contenedor.innerHTML = html;
+  }
+
+  // ============ FILTRO ============
+  var filtroActual = "todos";
+  var ordenActual = "recientes";
+
+  function toggleFiltro() {
+    var panel = document.getElementById("filtroPanel");
+    panel.classList.toggle("activo");
+  }
+
+  function aplicarFiltro(filtro, btn) {
+    filtroActual = filtro;
+    document.querySelectorAll(".filtro-opciones .filtro-btn").forEach(function(b) {
+      b.classList.remove("activo-filtro");
+    });
+    btn.classList.add("activo-filtro");
+    aplicarFiltroYOrden();
+  }
+
+  function aplicarOrden(orden, btn) {
+    ordenActual = orden;
+    document.querySelectorAll(".filtro-opciones .filtro-btn").forEach(function(b) {
+      if (b.textContent.includes("→") || b.textContent.includes("recientes") || b.textContent.includes("ID")) {
+        b.classList.remove("activo-filtro");
+      }
+    });
+    btn.classList.add("activo-filtro");
+    aplicarFiltroYOrden();
+  }
+
+  function aplicarFiltroYOrden() {
+    var resultado = pacientes.slice();
+    if (filtroActual !== "todos") {
+      resultado = resultado.filter(function(p){ return p.estado === filtroActual; });
+    }
+    if (ordenActual === "az") {
+      resultado.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
+    } else if (ordenActual === "id") {
+      resultado.sort(function(a,b){ return a.id.localeCompare(b.id); });
+    }
+    renderizarLista(resultado);
+  }
+
+  // ============ BUSCAR ============
+  function buscarPaciente(texto) {
+    var filtrados = pacientes.filter(function(p) {
+      return p.nombre.toLowerCase().includes(texto.toLowerCase()) ||
+             p.cedula.toLowerCase().includes(texto.toLowerCase()) ||
+             p.id.toLowerCase().includes(texto.toLowerCase());
+    });
+    renderizarLista(filtrados);
+  }
+
+  // ============ VER PACIENTE DETALLE ============
+  var pacienteViendoIdx = -1;
+
+  function verPacienteDetalle(idx) {
+    pacienteViendoIdx = idx;
+    var p = pacientes[idx];
+    var iniciales = p.nombre.split(" ").slice(0,2).map(function(n){ return n[0]; }).join("");
+    var claseBadge = p.estado === "Alerta" ? "estado-alerta" : p.estado === "Observación" ? "estado-observacion" : "estado-estable";
+
+    document.getElementById("ver-avatar").textContent = iniciales;
+    document.getElementById("ver-avatar").style.background = p.color;
+    document.getElementById("ver-nombre").textContent = p.nombre;
+    document.getElementById("ver-id").textContent = p.id + " · Registrado: " + p.fecha_registro;
+    document.getElementById("ver-estado-badge").innerHTML = '<span class="estado-badge ' + claseBadge + '">' + p.estado + '</span>';
+    document.getElementById("ver-cedula").textContent = p.cedula || "No registrado";
+    document.getElementById("ver-edad").textContent = p.edad ? p.edad + " años" : "No registrado";
+    document.getElementById("ver-sexo").textContent = p.sexo || "No registrado";
+    document.getElementById("ver-fecha").textContent = p.fecha_nac || "No registrado";
+    document.getElementById("ver-telefono").textContent = p.telefono || "No registrado";
+    document.getElementById("ver-direccion").textContent = p.direccion || "No registrado";
+    document.getElementById("ver-bpm-normal").textContent = p.bpm_normal ? p.bpm_normal + " BPM" : "No registrado";
+    document.getElementById("ver-bpm-rango").textContent = (p.bpm_min || "60") + " - " + (p.bpm_max || "100") + " BPM";
+    document.getElementById("ver-spo2-min").textContent = p.spo2_min ? p.spo2_min + "%" : "95%";
+    document.getElementById("ver-medico").textContent = p.medico || "Dr. Benito Díaz";
+    document.getElementById("ver-sangre").textContent = p.sangre || "No registrado";
+    document.getElementById("ver-alergias").textContent = p.alergias || "Ninguna";
+    document.getElementById("ver-enfermedades").textContent = p.enfermedades || "Ninguna";
+    document.getElementById("ver-medicamentos").textContent = p.medicamentos || "Ninguno";
+    document.getElementById("ver-observaciones").textContent = p.observaciones || "Sin observaciones";
+    document.getElementById("ver-subtitulo").textContent = p.id + " · " + (p.edad ? p.edad + " años" : "");
+
+    document.getElementById("modalVerPaciente").classList.add("activo");
+  }
+
+  function cerrarModalVer() {
+    document.getElementById("modalVerPaciente").classList.remove("activo");
+  }
+
+  function editarDesdeVer() {
+    cerrarModalVer();
+    editarPaciente(pacienteViendoIdx);
+  }
+
+  // ============ EDITAR PACIENTE ============
+  var editandoIdx = -1;
+
+  function editarPaciente(idx) {
+    editandoIdx = idx;
+    var p = pacientes[idx];
+    document.getElementById("p_nombre").value = p.nombre || "";
+    document.getElementById("p_fecha_nac").value = p.fecha_nac || "";
+    document.getElementById("p_edad").value = p.edad || "";
+    document.getElementById("p_sexo").value = p.sexo || "";
+    document.getElementById("p_cedula").value = p.cedula || "";
+    document.getElementById("p_telefono").value = p.telefono || "";
+    document.getElementById("p_direccion").value = p.direccion || "";
+    document.getElementById("p_bpm_normal").value = p.bpm_normal || "";
+    document.getElementById("p_bpm_min").value = p.bpm_min || "";
+    document.getElementById("p_bpm_max").value = p.bpm_max || "";
+    document.getElementById("p_spo2_min").value = p.spo2_min || "";
+    document.getElementById("p_sangre").value = p.sangre || "";
+    document.getElementById("p_alergias").value = p.alergias || "";
+    document.getElementById("p_enfermedades").value = p.enfermedades || "";
+    document.getElementById("p_medicamentos").value = p.medicamentos || "";
+    document.getElementById("p_observaciones").value = p.observaciones || "";
+
+    document.querySelector(".modal-titulo").textContent = "Editar Paciente";
+    document.querySelector(".modal-sub").textContent = "Modificar información médica";
+    document.querySelector(".btn-guardar:last-of-type").innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Guardar cambios';
+
+    document.getElementById("modalRegistro").classList.add("activo");
+    cambiarTab(1);
+  }
+
+  // ============ GUARDAR PACIENTE (NUEVO O EDICIÓN) ============
+  function guardarPaciente() {
+    var nombre = document.getElementById("p_nombre").value.trim();
+    if (!nombre) { mostrarToast("⚠️ El nombre es obligatorio"); cambiarTab(1); return; }
+    var cedula = document.getElementById("p_cedula").value.trim();
+    if (!cedula) { mostrarToast("⚠️ La cédula es obligatoria"); cambiarTab(1); return; }
+
+    var datosPaciente = {
+      nombre: nombre,
+      fecha_nac: document.getElementById("p_fecha_nac").value,
+      edad: document.getElementById("p_edad").value,
+      sexo: document.getElementById("p_sexo").value,
+      cedula: cedula,
+      telefono: document.getElementById("p_telefono").value,
+      direccion: document.getElementById("p_direccion").value,
+      bpm_normal: document.getElementById("p_bpm_normal").value || "75",
+      bpm_min: document.getElementById("p_bpm_min").value || "60",
+      bpm_max: document.getElementById("p_bpm_max").value || "100",
+      spo2_min: document.getElementById("p_spo2_min").value || "95",
+      medico: document.getElementById("p_medico").value,
+      sangre: document.getElementById("p_sangre").value,
+      alergias: document.getElementById("p_alergias").value,
+      enfermedades: document.getElementById("p_enfermedades").value,
+      medicamentos: document.getElementById("p_medicamentos").value,
+      observaciones: document.getElementById("p_observaciones").value
+    };
+
+    if (editandoIdx >= 0) {
+      // EDITAR
+      Object.assign(pacientes[editandoIdx], datosPaciente);
+      mostrarToast("✅ Datos actualizados correctamente");
+      editandoIdx = -1;
+    } else {
+      // NUEVO
+      datosPaciente.id = "P" + (10024 + pacientes.length);
+      datosPaciente.bpm_actual = "--";
+      datosPaciente.spo2_actual = "--";
+      datosPaciente.estado = "Estable";
+      datosPaciente.fecha_registro = new Date().toLocaleDateString("es-VE");
+      datosPaciente.color = coloresAvatar[pacientes.length % coloresAvatar.length];
+      pacientes.push(datosPaciente);
+      mostrarToast("✅ Paciente registrado correctamente");
+    }
+
+    guardarEnStorage();
+    renderizarLista(pacientes);
+    actualizarStats();
+    cerrarModal();
+
+    document.querySelector(".modal-titulo").textContent = "Nuevo Paciente";
+    document.querySelector(".modal-sub").textContent = "Registrar información médica";
+
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(pacientes));
+    }
+  }
+
+  // ============ ELIMINAR PACIENTE ============
+  function eliminarPaciente(idx) {
+    var nombre = pacientes[idx].nombre;
+    if (confirm("¿Eliminar a " + nombre + " del sistema?")) {
+      pacientes.splice(idx, 1);
+      guardarEnStorage();
+      renderizarLista(pacientes);
+      actualizarStats();
+      mostrarToast("🗑️ Paciente eliminado");
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(pacientes));
+      }
+    }
+  }
+
+  // ============ STATS ============
+  function actualizarStats() {
+    document.getElementById("totalPacientes").textContent = pacientes.length;
+    var alertas = pacientes.filter(function(p){ return p.estado === "Alerta"; }).length;
+    document.getElementById("totalAlertas").textContent = alertas;
+    document.getElementById("totalMonitor").textContent = pacientes.length;
+  }
+
+  // ============ TOAST ============
+  function mostrarToast(msg) {
+    var toast = document.getElementById("toast");
+    document.getElementById("toast-msg").textContent = msg;
+    toast.classList.add("activo");
+    setTimeout(function(){ toast.classList.remove("activo"); }, 3000);
+  }
+
+  // ============ RECIBIR DATOS DE APP INVENTOR ============
+  function revisarComandos() {
+    if (window.AppInventor) {
+      var texto = window.AppInventor.getWebViewString();
+      if (texto && texto !== ultimaCadena) {
+        ultimaCadena = texto;
+        if (texto.startsWith("ACTUALIZAR_BPM:")) {
+          var datos = texto.replace("ACTUALIZAR_BPM:", "").split(",");
+          if (pacientes.length > 0) {
+            pacientes[0].bpm_actual = datos[0] || "--";
+            pacientes[0].spo2_actual = datos[1] || "--";
+            if (parseInt(datos[0]) > 120 || parseInt(datos[1]) < 90) {
+              pacientes[0].estado = "Alerta";
+            } else if (parseInt(datos[0]) > 100) {
+              pacientes[0].estado = "Observación";
+            } else {
+              pacientes[0].estado = "Estable";
+            }
+            guardarEnStorage();
+            renderizarLista(pacientes);
+            actualizarStats();
+          }
+        } else if (texto.startsWith("CARGAR_PACIENTES:")) {
+          try {
+            var datos = JSON.parse(texto.replace("CARGAR_PACIENTES:", ""));
+            pacientes = datos;
+            renderizarLista(pacientes);
+            actualizarStats();
+          } catch(e) {}
+        }
+      }
+    }
+  }
+
+  setInterval(revisarComandos, 500);
+</script>
+
+</body>
+</html>
