@@ -87,6 +87,18 @@
     color: #333;
     white-space: pre-wrap;
   }
+  .esperando {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-size: 13px;
+  }
+  .esperando svg {
+    width: 40px; height: 40px;
+    margin: 0 auto 10px;
+    display: block;
+    opacity: 0.4;
+  }
   .loading {
     text-align: center;
     padding: 20px;
@@ -103,6 +115,24 @@
     margin: 0 auto 10px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-analizar {
+    background: #1565C0;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .btn-analizar svg { width: 18px; height: 18px; }
+  .btn-analizar:disabled { opacity: 0.6; cursor: not-allowed; }
   .chat-messages {
     max-height: 220px;
     overflow-y: auto;
@@ -211,9 +241,11 @@
     cursor: pointer;
     padding: 4px 10px;
     flex: 1;
+    border: none;
+    background: none;
   }
+  .nav-item svg { width: 22px; height: 22px; }
   .nav-item.active { color: #1565C0; font-weight: 700; }
-  .nav-item span:first-child { font-size: 20px; }
 </style>
 </head>
 <body>
@@ -227,17 +259,26 @@
 </div>
 
 <div class="content">
+
+  <!-- DATOS -->
   <div class="card">
-    <div class="card-title">📊 Datos analizados</div>
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Datos analizados
+    </div>
     <div class="datos-grid">
       <div class="dato-item">
-        <div class="dato-icon">❤️</div>
+        <div class="dato-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
         <div class="dato-label">Ritmo cardíaco</div>
         <div class="dato-valor bpm" id="valorBPM">--</div>
         <div class="dato-unidad">lpm</div>
       </div>
       <div class="dato-item">
-        <div class="dato-icon">💧</div>
+        <div class="dato-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
         <div class="dato-label">Oxígeno en sangre</div>
         <div class="dato-valor spo2" id="valorSpO2">--</div>
         <div class="dato-unidad">%</div>
@@ -245,18 +286,30 @@
     </div>
   </div>
 
+  <!-- ANÁLISIS GEMINI -->
   <div class="card">
-    <div class="card-title">✦ Análisis de Gemini</div>
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Análisis de Gemini
+    </div>
     <div id="analisisContainer">
-      <div class="loading">
-        <div class="loading-spinner"></div>
-        Analizando datos del paciente...
+      <div class="esperando">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Presiona "Analizar datos" para obtener el diagnóstico
       </div>
     </div>
+    <button class="btn-analizar" id="btnAnalizar" onclick="solicitarAnalisis()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Analizar datos
+    </button>
   </div>
 
+  <!-- CHAT -->
   <div class="card">
-    <div class="card-title">💬 Habla con Gemini</div>
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Habla con Gemini
+    </div>
     <p style="font-size:11px;color:#888;margin-bottom:8px;">Consulta o pregunta sobre los datos del paciente</p>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
@@ -264,42 +317,60 @@
       <button class="btn-enviar" id="btnEnviar" onclick="enviarMensaje()">Enviar ✈</button>
     </div>
   </div>
+
 </div>
 
+<!-- MODAL CONFIG -->
 <div class="modal-overlay" id="modalConfig">
   <div class="modal-box">
     <h3 style="color:#1565C0; margin-bottom:12px; font-size:16px;">⚙️ Configuración del Sistema</h3>
     <div style="font-size:12px; color:#555; line-height:1.8; margin-bottom:16px;">
       <p><strong>ESP32 Biométrico:</strong> <span style="color:#2e7d32;">Conectado</span></p>
       <p><strong>Servidor IA (Gemini):</strong> <span style="color:#2e7d32;">En línea</span></p>
-      <p><strong>Modo de análisis:</strong> Tiempo Real</p>
+      <p><strong>Modo de análisis:</strong> Manual</p>
       <p><strong>Versión de la App:</strong> 1.0.0</p>
     </div>
     <button onclick="cerrarConfig()" style="width:100%; padding:10px; background:#1565C0; color:white; border:none; border-radius:20px; font-weight:600; cursor:pointer;">Cerrar</button>
   </div>
 </div>
 
+<!-- NAVBAR CON ICONOS SVG PROFESIONALES -->
 <div class="navbar">
-  <div class="nav-item" onclick="navegar('IR_SCREEN2')">
-    <span>🏠</span>
-    <span>Inicio</span>
-  </div>
-  <div class="nav-item" onclick="navegar('IR_SCREEN4')">
-    <span>👥</span>
-    <span>Pacientes</span>
-  </div>
-  <div class="nav-item" onclick="navegar('IR_SCREEN2')">
-    <span>📈</span>
-    <span>Monitoreo</span>
-  </div>
-  <div class="nav-item active">
-    <span>✦</span>
-    <span>Análisis IA</span>
-  </div>
-  <div class="nav-item" onclick="abrirConfig()">
-    <span>⚙️</span>
-    <span>Config.</span>
-  </div>
+  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9,22 9,12 15,12 15,22"/>
+    </svg>
+    Inicio
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN4')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    Pacientes
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    Monitoreo
+  </button>
+  <button class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+    Análisis IA
+  </button>
+  <button class="nav-item" onclick="abrirConfig()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    Config.
+  </button>
 </div>
 
 <script>
@@ -328,7 +399,29 @@
     }
   }
 
+  function solicitarAnalisis() {
+    var btn = document.getElementById("btnAnalizar");
+    btn.disabled = true;
+    btn.innerHTML = '<div style="width:16px;height:16px;border:2px solid white;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div> Analizando...';
+
+    document.getElementById("analisisContainer").innerHTML =
+      '<div class="loading"><div class="loading-spinner"></div>Analizando datos del paciente...</div>';
+
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString("SOLICITAR_ANALISIS");
+    }
+
+    setTimeout(function() {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analizar datos';
+    }, 15000);
+  }
+
   function mostrarRespuestaGemini(respuesta) {
+    var btn = document.getElementById("btnAnalizar");
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analizar datos';
+
     let claseResultado = "resultado-normal";
     let iconoResultado = "✅";
     let textoResultado = "Resultado general: NORMAL";
