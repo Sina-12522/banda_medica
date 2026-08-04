@@ -524,7 +524,7 @@ setTimeout(function(){ toast.classList.remove('activo'); }, 3000);
 function cargarDoctoresGuardados(datos) {
 try {
 if (datos && datos !== '[]' && datos !== '') {
-var json = datos.replace('GUARDAR_DOCTOR:', '');
+var json = datos.indexOf('GUARDAR_DOCTOR:')===0 ? datos.replace('GUARDAR_DOCTOR:',"):datos;
 doctores = JSON.parse(json);
 renderizarLista(doctores);
 actualizarStats();
