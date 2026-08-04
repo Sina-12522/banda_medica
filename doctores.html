@@ -5,592 +5,534 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Doctores - Hospital Dr. José Gregorio Hernández</title>
 <style>
-  :root {
-    --azul: #1565C0;
-    --azul-claro: #1976D2;
-    --azul-fondo: #EEF2FB;
-    --verde: #2E7D32;
-    --verde-claro: #E8F5E9;
-    --amarillo: #F57F17;
-    --amarillo-claro: #FFF8E1;
-    --rojo: #C62828;
-    --rojo-claro: #FFEBEE;
-    --gris: #64748B;
-    --borde: #E3EAF5;
-    --texto: #1A2940;
-    --blanco: #FFFFFF;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F0F4F8; color: var(--texto); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-
-  .header { background: var(--blanco); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 100; }
-  .header-left { display: flex; align-items: center; gap: 10px; }
-  .header-logo { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-  .header-logo svg { width: 20px; height: 20px; }
-  .header-title { font-size: 15px; font-weight: 700; color: var(--texto); }
-  .header-sub { font-size: 11px; color: var(--gris); }
-  .btn-inicio { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-  .btn-inicio svg { width: 18px; height: 18px; }
-
-  .content { flex: 1; padding: 12px; padding-bottom: 80px; display: flex; flex-direction: column; gap: 12px; }
-
-  .bienvenida { background: linear-gradient(135deg, var(--azul), var(--azul-claro)); border-radius: 16px; padding: 16px; color: white; }
-  .bienvenida-nombre { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
-  .bienvenida-sub { font-size: 12px; opacity: 0.85; margin-bottom: 14px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat-item { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 8px; text-align: center; }
-  .stat-item svg { width: 20px; height: 20px; margin-bottom: 4px; opacity: 0.9; }
-  .stat-num { font-size: 22px; font-weight: 800; line-height: 1; }
-  .stat-label { font-size: 10px; opacity: 0.8; margin-top: 2px; }
-
-  .buscar-row { display: flex; gap: 8px; align-items: center; }
-  .buscar-input-wrap { flex: 1; position: relative; }
-  .buscar-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--gris); }
-  .buscar-input { width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid var(--borde); border-radius: 12px; font-size: 13px; background: var(--blanco); outline: none; color: var(--texto); }
-  .buscar-input:focus { border-color: var(--azul); }
-  .btn-filtrar { padding: 10px 14px; background: var(--blanco); border: 1.5px solid var(--borde); border-radius: 12px; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--texto); cursor: pointer; white-space: nowrap; }
-  .btn-filtrar svg { width: 14px; height: 14px; }
-
-  .filtro-panel { display: none; background: var(--blanco); border-radius: 14px; border: 1px solid var(--borde); padding: 14px; gap: 8px; flex-direction: column; }
-  .filtro-panel.activo { display: flex; }
-  .filtro-titulo { font-size: 12px; font-weight: 700; color: var(--gris); margin-bottom: 4px; }
-  .filtro-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
-  .filtro-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--borde); font-size: 12px; font-weight: 600; cursor: pointer; background: var(--blanco); color: var(--texto); }
-  .filtro-btn.activo-filtro { border-color: var(--azul); background: var(--azul-fondo); color: var(--azul); }
-
-  .seccion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .seccion-titulo { font-size: 14px; font-weight: 700; }
-  .sincronizado { font-size: 11px; color: var(--verde); display: flex; align-items: center; gap: 4px; }
-  .sincronizado svg { width: 12px; height: 12px; }
-
-  .doctor-card { background: var(--blanco); border-radius: 14px; padding: 12px 14px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid var(--borde); margin-bottom: 8px; }
-  .avatar { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; flex-shrink: 0; }
-  .doctor-info { flex: 1; min-width: 0; }
-  .doctor-nombre { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-  .doctor-especialidad { font-size: 12px; color: var(--azul); font-weight: 600; margin-bottom: 4px; }
-  .doctor-sub { font-size: 11px; color: var(--gris); margin-bottom: 6px; }
-  .doctor-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-  .turno-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
-  .turno-manana { background: var(--amarillo-claro); color: var(--amarillo); }
-  .turno-tarde { background: var(--azul-fondo); color: var(--azul); }
-  .turno-noche { background: #EDE7F6; color: #4527A0; }
-  .paciente-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--verde-claro); color: var(--verde); }
-
-  .doctor-acciones { display: flex; gap: 6px; }
-  .btn-accion { flex: 1; padding: 6px; border-radius: 8px; border: 1.5px solid var(--borde); font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--blanco); }
-  .btn-accion svg { width: 13px; height: 13px; }
-  .btn-accion.ver { color: var(--azul); border-color: var(--azul); background: var(--azul-fondo); }
-  .btn-accion.editar { color: var(--amarillo); border-color: var(--amarillo); background: var(--amarillo-claro); }
-  .btn-accion.eliminar { color: var(--rojo); border-color: var(--rojo); background: var(--rojo-claro); }
-
-  .btn-registrar { background: var(--azul); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-registrar svg { width: 18px; height: 18px; }
-
-  .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--blanco); border-top: 1px solid var(--borde); display: flex; justify-content: space-around; padding: 8px 0 12px; z-index: 100; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: var(--gris); cursor: pointer; padding: 4px 12px; border: none; background: none; flex: 1; }
-  .nav-item svg { width: 22px; height: 22px; }
-  .nav-item.active { color: var(--azul); font-weight: 700; }
-
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; overflow-y: auto; }
-  .modal-overlay.activo { display: flex; }
-  .modal { background: var(--blanco); border-radius: 20px 20px 0 0; width: 100%; margin-top: auto; padding: 20px 16px; min-height: 80vh; animation: slideUp 0.3s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .modal-titulo { font-size: 16px; font-weight: 700; }
-  .modal-sub { font-size: 12px; color: var(--gris); }
-  .btn-cerrar { width: 32px; height: 32px; background: var(--azul-fondo); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-  .btn-cerrar svg { width: 16px; height: 16px; }
-
-  .tabs { display: flex; background: var(--azul-fondo); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
-  .tab { flex: 1; padding: 8px 4px; font-size: 11px; font-weight: 600; text-align: center; border-radius: 8px; border: none; background: none; color: var(--gris); cursor: pointer; }
-  .tab.active { background: var(--blanco); color: var(--azul); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-
-  .form-seccion { margin-bottom: 16px; }
-  .form-seccion-titulo { font-size: 13px; font-weight: 700; color: var(--azul); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-  .form-seccion-titulo svg { width: 16px; height: 16px; }
-  .form-grupo { margin-bottom: 10px; }
-  .form-label { font-size: 11px; color: var(--gris); margin-bottom: 4px; display: block; }
-  .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--borde); border-radius: 10px; font-size: 13px; background: var(--blanco); color: var(--texto); outline: none; font-family: inherit; }
-  .form-input:focus, .form-select:focus { border-color: var(--azul); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  .btn-guardar { background: var(--azul); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
-  .btn-guardar svg { width: 18px; height: 18px; }
-  .btn-cancelar { background: none; color: var(--azul); border: none; font-size: 13px; font-weight: 600; width: 100%; padding: 12px; cursor: pointer; margin-top: 4px; }
-
-  .detalle-seccion { margin-bottom: 14px; }
-  .detalle-titulo { font-size: 12px; font-weight: 700; color: var(--azul); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--borde); padding-bottom: 6px; }
-  .detalle-titulo svg { width: 14px; height: 14px; }
-  .detalle-fila { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--azul-fondo); font-size: 13px; }
-  .detalle-key { color: var(--gris); font-size: 12px; }
-  .detalle-val { font-weight: 600; text-align: right; max-width: 60%; }
-
-  .lista-vacia { text-align: center; padding: 30px 20px; color: var(--gris); }
-  .lista-vacia svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
-  .lista-vacia p { font-size: 13px; }
-
-  .toast { position: fixed; bottom: 80px; left: 16px; right: 16px; background: var(--texto); color: white; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 300; display: none; align-items: center; gap: 8px; }
-  .toast.activo { display: flex; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  .toast svg { width: 18px; height: 18px; flex-shrink: 0; }
+:root {
+--azul: #1565C0;
+--azul-claro: #1976D2;
+--azul-fondo: #EEF2FB;
+--verde: #2E7D32;
+--verde-claro: #E8F5E9;
+--amarillo: #F57F17;
+--amarillo-claro: #FFF8E1;
+--rojo: #C62828;
+--rojo-claro: #FFEBEE;
+--gris: #64748B;
+--borde: #E3EAF5;
+--texto: #1A2940;
+--blanco: #FFFFFF;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F0F4F8; color: var(--texto); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+.header { background: var(--blanco); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 100; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.header-logo svg { width: 20px; height: 20px; }
+.header-title { font-size: 15px; font-weight: 700; color: var(--texto); }
+.header-sub { font-size: 11px; color: var(--gris); }
+.btn-inicio { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.btn-inicio svg { width: 18px; height: 18px; }
+.content { flex: 1; padding: 12px; padding-bottom: 80px; display: flex; flex-direction: column; gap: 12px; }
+.bienvenida { background: linear-gradient(135deg, var(--azul), var(--azul-claro)); border-radius: 16px; padding: 16px; color: white; }
+.bienvenida-nombre { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+.bienvenida-sub { font-size: 12px; opacity: 0.85; margin-bottom: 14px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat-item { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.stat-item svg { width: 20px; height: 20px; margin-bottom: 4px; opacity: 0.9; }
+.stat-num { font-size: 22px; font-weight: 800; line-height: 1; }
+.stat-label { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+.buscar-row { display: flex; gap: 8px; align-items: center; }
+.buscar-input-wrap { flex: 1; position: relative; }
+.buscar-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--gris); }
+.buscar-input { width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid var(--borde); border-radius: 12px; font-size: 13px; background: var(--blanco); outline: none; color: var(--texto); }
+.buscar-input:focus { border-color: var(--azul); }
+.btn-filtrar { padding: 10px 14px; background: var(--blanco); border: 1.5px solid var(--borde); border-radius: 12px; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--texto); cursor: pointer; white-space: nowrap; }
+.btn-filtrar svg { width: 14px; height: 14px; }
+.filtro-panel { display: none; background: var(--blanco); border-radius: 14px; border: 1px solid var(--borde); padding: 14px; gap: 8px; flex-direction: column; }
+.filtro-panel.activo { display: flex; }
+.filtro-titulo { font-size: 12px; font-weight: 700; color: var(--gris); margin-bottom: 4px; }
+.filtro-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.filtro-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--borde); font-size: 12px; font-weight: 600; cursor: pointer; background: var(--blanco); color: var(--texto); }
+.filtro-btn.activo-filtro { border-color: var(--azul); background: var(--azul-fondo); color: var(--azul); }
+.seccion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.seccion-titulo { font-size: 14px; font-weight: 700; }
+.sincronizado { font-size: 11px; color: var(--verde); display: flex; align-items: center; gap: 4px; }
+.sincronizado svg { width: 12px; height: 12px; }
+.doctor-card { background: var(--blanco); border-radius: 14px; padding: 12px 14px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid var(--borde); margin-bottom: 8px; }
+.avatar { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; flex-shrink: 0; }
+.doctor-info { flex: 1; min-width: 0; }
+.doctor-nombre { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.doctor-especialidad { font-size: 12px; color: var(--azul); font-weight: 600; margin-bottom: 4px; }
+.doctor-sub { font-size: 11px; color: var(--gris); margin-bottom: 6px; }
+.doctor-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.turno-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+.turno-manana { background: var(--amarillo-claro); color: var(--amarillo); }
+.turno-tarde { background: var(--azul-fondo); color: var(--azul); }
+.turno-noche { background: #EDE7F6; color: #4527A0; }
+.paciente-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--verde-claro); color: var(--verde); }
+.doctor-acciones { display: flex; gap: 6px; }
+.btn-accion { flex: 1; padding: 6px; border-radius: 8px; border: 1.5px solid var(--borde); font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--blanco); }
+.btn-accion svg { width: 13px; height: 13px; }
+.btn-accion.ver { color: var(--azul); border-color: var(--azul); background: var(--azul-fondo); }
+.btn-accion.editar { color: var(--amarillo); border-color: var(--amarillo); background: var(--amarillo-claro); }
+.btn-accion.eliminar { color: var(--rojo); border-color: var(--rojo); background: var(--rojo-claro); }
+.btn-registrar { background: var(--azul); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-registrar svg { width: 18px; height: 18px; }
+.navbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--blanco); border-top: 1px solid var(--borde); display: flex; justify-content: space-around; padding: 8px 0 12px; z-index: 100; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: var(--gris); cursor: pointer; padding: 4px 12px; border: none; background: none; flex: 1; }
+.nav-item svg { width: 22px; height: 22px; }
+.nav-item.active { color: var(--azul); font-weight: 700; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; overflow-y: auto; }
+.modal-overlay.activo { display: flex; }
+.modal { background: var(--blanco); border-radius: 20px 20px 0 0; width: 100%; margin-top: auto; padding: 20px 16px; min-height: 80vh; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-titulo { font-size: 16px; font-weight: 700; }
+.modal-sub { font-size: 12px; color: var(--gris); }
+.btn-cerrar { width: 32px; height: 32px; background: var(--azul-fondo); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.btn-cerrar svg { width: 16px; height: 16px; }
+.tabs { display: flex; background: var(--azul-fondo); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
+.tab { flex: 1; padding: 8px 4px; font-size: 11px; font-weight: 600; text-align: center; border-radius: 8px; border: none; background: none; color: var(--gris); cursor: pointer; }
+.tab.active { background: var(--blanco); color: var(--azul); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.form-seccion { margin-bottom: 16px; }
+.form-seccion-titulo { font-size: 13px; font-weight: 700; color: var(--azul); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.form-seccion-titulo svg { width: 16px; height: 16px; }
+.form-grupo { margin-bottom: 10px; }
+.form-label { font-size: 11px; color: var(--gris); margin-bottom: 4px; display: block; }
+.form-input, .form-select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--borde); border-radius: 10px; font-size: 13px; background: var(--blanco); color: var(--texto); outline: none; font-family: inherit; }
+.form-input:focus, .form-select:focus { border-color: var(--azul); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-guardar { background: var(--azul); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+.btn-guardar svg { width: 18px; height: 18px; }
+.btn-cancelar { background: none; color: var(--azul); border: none; font-size: 13px; font-weight: 600; width: 100%; padding: 12px; cursor: pointer; margin-top: 4px; }
+.detalle-seccion { margin-bottom: 14px; }
+.detalle-titulo { font-size: 12px; font-weight: 700; color: var(--azul); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--borde); padding-bottom: 6px; }
+.detalle-titulo svg { width: 14px; height: 14px; }
+.detalle-fila { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--azul-fondo); font-size: 13px; }
+.detalle-key { color: var(--gris); font-size: 12px; }
+.detalle-val { font-weight: 600; text-align: right; max-width: 60%; }
+.lista-vacia { text-align: center; padding: 30px 20px; color: var(--gris); }
+.lista-vacia svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.lista-vacia p { font-size: 13px; }
+.toast { position: fixed; bottom: 80px; left: 16px; right: 16px; background: var(--texto); color: white; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 300; display: none; align-items: center; gap: 8px; }
+.toast.activo { display: flex; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.toast svg { width: 18px; height: 18px; flex-shrink: 0; }
 </style>
 </head>
 <body>
-
 <div class="header">
-  <div class="header-left">
-    <div class="header-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.53 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6z"/>
-      </svg>
-    </div>
-    <div>
-      <div class="header-title">Hospital Dr. JGH</div>
-      <div class="header-sub">Sistema de monitoreo</div>
-    </div>
-  </div>
-  <button class="btn-inicio" onclick="navegar('IR_SCREEN2')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-      <polyline points="9,22 9,12 15,12 15,22"/>
-    </svg>
-  </button>
+<div class="header-left">
+<div class="header-logo">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.53 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6z"/>
+</svg>
 </div>
-
+<div>
+<div class="header-title">Hospital Dr. JGH</div>
+<div class="header-sub">Sistema de monitoreo</div>
+</div>
+</div>
+<button class="btn-inicio" onclick="navegar('IR_SCREEN2')">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+<polyline points="9,22 9,12 15,12 15,22"/>
+</svg>
+</button>
+</div>
 <div class="content">
-  <div class="bienvenida">
-    <div class="bienvenida-nombre">Equipo Médico</div>
-    <div class="bienvenida-sub">Hospital Dr. José Gregorio Hernández</div>
-    <div class="stats-grid">
-      <div class="stat-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-        <div class="stat-num" id="totalDoctores">0</div>
-        <div class="stat-label">Doctores</div>
-      </div>
-      <div class="stat-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <div class="stat-num" id="totalTurnos">0</div>
-        <div class="stat-label">En turno</div>
-      </div>
-      <div class="stat-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        <div class="stat-num" id="totalEspecialidades">0</div>
-        <div class="stat-label">Especialidades</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="buscar-row">
-    <div class="buscar-input-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" class="buscar-input" id="inputBuscar" placeholder="Buscar doctor..." oninput="buscarDoctor(this.value)"/>
-    </div>
-    <button class="btn-filtrar" onclick="toggleFiltro()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      Filtrar
-    </button>
-  </div>
-
-  <div class="filtro-panel" id="filtroPanel">
-    <div class="filtro-titulo">FILTRAR POR TURNO</div>
-    <div class="filtro-opciones">
-      <button class="filtro-btn activo-filtro" onclick="aplicarFiltro('todos', this)">Todos</button>
-      <button class="filtro-btn" onclick="aplicarFiltro('Mañana', this)">☀️ Mañana</button>
-      <button class="filtro-btn" onclick="aplicarFiltro('Tarde', this)">🌤️ Tarde</button>
-      <button class="filtro-btn" onclick="aplicarFiltro('Noche', this)">🌙 Noche</button>
-    </div>
-    <div class="filtro-titulo" style="margin-top:4px;">ORDENAR POR</div>
-    <div class="filtro-opciones">
-      <button class="filtro-btn activo-filtro" onclick="aplicarOrden('recientes', this)">Más recientes</button>
-      <button class="filtro-btn" onclick="aplicarOrden('az', this)">A → Z</button>
-      <button class="filtro-btn" onclick="aplicarOrden('especialidad', this)">Especialidad</button>
-    </div>
-  </div>
-
-  <div>
-    <div class="seccion-header">
-      <div class="seccion-titulo">Doctores registrados</div>
-      <div class="sincronizado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Sincronizado
-      </div>
-    </div>
-    <div id="listaDoctores">
-      <div class="lista-vacia">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-        <p>No hay doctores registrados.<br>Registra el primero usando el botón de abajo.</p>
-      </div>
-    </div>
-  </div>
-
-  <button class="btn-registrar" onclick="abrirModal()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Registrar nuevo doctor
-  </button>
+<div class="bienvenida">
+<div class="bienvenida-nombre">Equipo Médico</div>
+<div class="bienvenida-sub">Hospital Dr. José Gregorio Hernández</div>
+<div class="stats-grid">
+<div class="stat-item">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+<div class="stat-num" id="totalDoctores">0</div>
+<div class="stat-label">Doctores</div>
 </div>
-
+<div class="stat-item">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+<div class="stat-num" id="totalTurnos">0</div>
+<div class="stat-label">En turno</div>
+</div>
+<div class="stat-item">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+<div class="stat-num" id="totalEspecialidades">0</div>
+<div class="stat-label">Especialidades</div>
+</div>
+</div>
+</div>
+<div class="buscar-row">
+<div class="buscar-input-wrap">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+<input type="text" class="buscar-input" id="inputBuscar" placeholder="Buscar doctor..." oninput="buscarDoctor(this.value)"/>
+</div>
+<button class="btn-filtrar" onclick="toggleFiltro()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+Filtrar
+</button>
+</div>
+<div class="filtro-panel" id="filtroPanel">
+<div class="filtro-titulo">FILTRAR POR TURNO</div>
+<div class="filtro-opciones">
+<button class="filtro-btn activo-filtro" onclick="aplicarFiltro('todos', this)">Todos</button>
+<button class="filtro-btn" onclick="aplicarFiltro('Mañana', this)">☀️ Mañana</button>
+<button class="filtro-btn" onclick="aplicarFiltro('Tarde', this)">🌤️ Tarde</button>
+<button class="filtro-btn" onclick="aplicarFiltro('Noche', this)">🌙 Noche</button>
+</div>
+<div class="filtro-titulo" style="margin-top:4px;">ORDENAR POR</div>
+<div class="filtro-opciones">
+<button class="filtro-btn activo-filtro" onclick="aplicarOrden('recientes', this)">Más recientes</button>
+<button class="filtro-btn" onclick="aplicarOrden('az', this)">A → Z</button>
+<button class="filtro-btn" onclick="aplicarOrden('especialidad', this)">Especialidad</button>
+</div>
+</div>
+<div>
+<div class="seccion-header">
+<div class="seccion-titulo">Doctores registrados</div>
+<div class="sincronizado">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+Sincronizado
+</div>
+</div>
+<div id="listaDoctores">
+<div class="lista-vacia">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+<p>No hay doctores registrados.<br>Registra el primero usando el botón de abajo.</p>
+</div>
+</div>
+</div>
+<button class="btn-registrar" onclick="abrirModal()">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Registrar nuevo doctor
+</button>
+</div>
 <div class="navbar">
-  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-    Inicio
-  </button>
-  <button class="nav-item" onclick="navegar('IR_SCREEN4')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-    Pacientes
-  </button>
-  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    Monitoreo
-  </button>
-  <button class="nav-item" onclick="navegar('IR_SCREEN6')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    Reportes
-  </button>
-  <button class="nav-item active">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-    Doctores
-  </button>
+<button class="nav-item" onclick="navegar('IR_SCREEN2')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+Inicio
+</button>
+<button class="nav-item" onclick="navegar('IR_SCREEN4')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+Pacientes
+</button>
+<button class="nav-item" onclick="navegar('IR_SCREEN2')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+Monitoreo
+</button>
+<button class="nav-item" onclick="navegar('IR_SCREEN6')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+Reportes
+</button>
+<button class="nav-item active">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+Doctores
+</button>
 </div>
-
 <!-- MODAL REGISTRO -->
 <div class="modal-overlay" id="modalRegistro">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <div class="modal-titulo" id="modalTitulo">Nuevo Doctor</div>
-        <div class="modal-sub" id="modalSub">Registrar información médica</div>
-      </div>
-      <button class="btn-cerrar" onclick="cerrarModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="tabs">
-      <button class="tab active" id="tab1" onclick="cambiarTab(1)">Datos Personales</button>
-      <button class="tab" id="tab2" onclick="cambiarTab(2)">Datos Profesionales</button>
-    </div>
-
-    <!-- TAB 1 -->
-    <div id="contenido-tab1">
-      <div class="form-seccion">
-        <div class="form-seccion-titulo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-          Información Personal
-        </div>
-        <div class="form-grupo"><label class="form-label">Nombre completo</label><input type="text" class="form-input" id="d_nombre" placeholder="Ej: Dr. Carlos Pérez"/></div>
-        <div class="form-grupo"><label class="form-label">Cédula de identidad</label><input type="text" class="form-input" id="d_cedula" placeholder="Ej: V-12345678"/></div>
-        <div class="form-row">
-          <div class="form-grupo"><label class="form-label">Teléfono</label><input type="tel" class="form-input" id="d_telefono" placeholder="0414-0000000"/></div>
-          <div class="form-grupo"><label class="form-label">Correo institucional</label><input type="email" class="form-input" id="d_correo" placeholder="doctor@hospital.com"/></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2 -->
-    <div id="contenido-tab2" style="display:none;">
-      <div class="form-seccion">
-        <div class="form-seccion-titulo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          Datos Profesionales
-        </div>
-        <div class="form-grupo"><label class="form-label">Especialidad</label><input type="text" class="form-input" id="d_especialidad" placeholder="Ej: Cardiología"/></div>
-        <div class="form-grupo"><label class="form-label">Departamento</label><input type="text" class="form-input" id="d_departamento" placeholder="Ej: Unidad de Cuidados Intensivos"/></div>
-        <div class="form-row">
-          <div class="form-grupo">
-            <label class="form-label">Turno</label>
-            <select class="form-select" id="d_turno">
-              <option value="">Seleccionar</option>
-              <option value="Mañana">Mañana</option>
-              <option value="Tarde">Tarde</option>
-              <option value="Noche">Noche</option>
-            </select>
-          </div>
-          <div class="form-grupo"><label class="form-label">Paciente a cargo</label><input type="text" class="form-input" id="d_paciente_cargo" placeholder="Nombre del paciente"/></div>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-guardar" onclick="guardarDoctor()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      Guardar doctor
-    </button>
-    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-  </div>
+<div class="modal">
+<div class="modal-header">
+<div>
+<div class="modal-titulo" id="modalTitulo">Nuevo Doctor</div>
+<div class="modal-sub" id="modalSub">Registrar información médica</div>
 </div>
-
+<button class="btn-cerrar" onclick="cerrarModal()">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<div class="tabs">
+<button class="tab active" id="tab1" onclick="cambiarTab(1)">Datos Personales</button>
+<button class="tab" id="tab2" onclick="cambiarTab(2)">Datos Profesionales</button>
+</div>
+<!-- TAB 1 -->
+<div id="contenido-tab1">
+<div class="form-seccion">
+<div class="form-seccion-titulo">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+Información Personal
+</div>
+<div class="form-grupo"><label class="form-label">Nombre completo</label><input type="text" class="form-input" id="d_nombre" placeholder="Ej: Dr. Carlos Pérez"/></div>
+<div class="form-grupo"><label class="form-label">Cédula de identidad</label><input type="text" class="form-input" id="d_cedula" placeholder="Ej: V-12345678"/></div>
+<div class="form-row">
+<div class="form-grupo"><label class="form-label">Teléfono</label><input type="tel" class="form-input" id="d_telefono" placeholder="0414-0000000"/></div>
+<div class="form-grupo"><label class="form-label">Correo institucional</label><input type="email" class="form-input" id="d_correo" placeholder="doctor@hospital.com"/></div>
+</div>
+</div>
+</div>
+<!-- TAB 2 -->
+<div id="contenido-tab2" style="display:none;">
+<div class="form-seccion">
+<div class="form-seccion-titulo">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+Datos Profesionales
+</div>
+<div class="form-grupo"><label class="form-label">Especialidad</label><input type="text" class="form-input" id="d_especialidad" placeholder="Ej: Cardiología"/></div>
+<div class="form-grupo"><label class="form-label">Departamento</label><input type="text" class="form-input" id="d_departamento" placeholder="Ej: Unidad de Cuidados Intensivos"/></div>
+<div class="form-row">
+<div class="form-grupo">
+<label class="form-label">Turno</label>
+<select class="form-select" id="d_turno">
+<option value="">Seleccionar</option>
+<option value="Mañana">Mañana</option>
+<option value="Tarde">Tarde</option>
+<option value="Noche">Noche</option>
+</select>
+</div>
+<div class="form-grupo"><label class="form-label">Paciente a cargo</label><input type="text" class="form-input" id="d_paciente_cargo" placeholder="Nombre del paciente"/></div>
+</div>
+</div>
+</div>
+<button class="btn-guardar" onclick="guardarDoctor()">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+Guardar doctor
+</button>
+<button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+</div>
+</div>
 <!-- MODAL VER DETALLE -->
 <div class="modal-overlay" id="modalDetalle">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <div class="modal-titulo">Información del Doctor</div>
-        <div class="modal-sub" id="detalle-especialidad"></div>
-      </div>
-      <button class="btn-cerrar" onclick="cerrarDetalle()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div id="detalle-contenido"></div>
-    <button class="btn-guardar" onclick="editarDesdeDetalle()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Editar datos
-    </button>
-  </div>
+<div class="modal">
+<div class="modal-header">
+<div>
+<div class="modal-titulo">Información del Doctor</div>
+<div class="modal-sub" id="detalle-especialidad"></div>
 </div>
-
+<button class="btn-cerrar" onclick="cerrarDetalle()">
+<svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<div id="detalle-contenido"></div>
+<button class="btn-guardar" onclick="editarDesdeDetalle()">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+Editar datos
+</button>
+</div>
+</div>
 <!-- TOAST -->
 <div class="toast" id="toast">
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-  <span id="toast-msg"></span>
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+<span id="toast-msg"></span>
 </div>
-
 <script>
-  var doctores = [];
-  var filtroActual = 'todos';
-  var ordenActual = 'recientes';
-  var editandoIdx = -1;
-  var viendoIdx = -1;
-
-  var coloresAvatar = ['#1565C0','#2E7D32','#6A1B9A','#AD1457','#00838F','#E65100','#37474F'];
-
-  function navegar(cmd) {
-    if (window.AppInventor) window.AppInventor.setWebViewString(cmd);
-  }
-
-  function toggleFiltro() {
-    document.getElementById('filtroPanel').classList.toggle('activo');
-  }
-
-  function aplicarFiltro(valor, btn) {
-    filtroActual = valor;
-    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo-filtro'));
-    btn.classList.add('activo-filtro');
-    renderizarLista(doctores);
-  }
-
-  function aplicarOrden(valor, btn) {
-    ordenActual = valor;
-    document.querySelectorAll('.filtro-btn').forEach(b => {
-      if (['recientes','az','especialidad'].includes(b.getAttribute('onclick').match(/'([^']+)'/)[1])) {
-        b.classList.remove('activo-filtro');
-      }
-    });
-    btn.classList.add('activo-filtro');
-    renderizarLista(doctores);
-  }
-
-  function buscarDoctor(texto) {
-    var filtrados = doctores.filter(function(d) {
-      return d.nombre.toLowerCase().includes(texto.toLowerCase()) ||
-             d.especialidad.toLowerCase().includes(texto.toLowerCase()) ||
-             d.cedula.toLowerCase().includes(texto.toLowerCase());
-    });
-    renderizarLista(filtrados);
-  }
-
-  function obtenerClaseTurno(turno) {
-    if (turno === 'Mañana') return 'turno-manana';
-    if (turno === 'Tarde') return 'turno-tarde';
-    if (turno === 'Noche') return 'turno-noche';
-    return 'turno-manana';
-  }
-
-  function renderizarLista(lista) {
-    var filtrados = lista;
-    if (filtroActual !== 'todos') {
-      filtrados = lista.filter(function(d) { return d.turno === filtroActual; });
-    }
-    if (ordenActual === 'az') {
-      filtrados = filtrados.slice().sort(function(a,b) { return a.nombre.localeCompare(b.nombre); });
-    } else if (ordenActual === 'especialidad') {
-      filtrados = filtrados.slice().sort(function(a,b) { return a.especialidad.localeCompare(b.especialidad); });
-    }
-
-    var contenedor = document.getElementById('listaDoctores');
-    if (filtrados.length === 0) {
-      contenedor.innerHTML = '<div class="lista-vacia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><p>No hay doctores registrados.<br>Registra el primero usando el botón de abajo.</p></div>';
-      return;
-    }
-
-    var html = '';
-    filtrados.forEach(function(d, i) {
-      var idx = doctores.indexOf(d);
-      var iniciales = d.nombre.split(' ').slice(0,2).map(function(n){ return n[0]; }).join('').toUpperCase();
-      var claseTurno = obtenerClaseTurno(d.turno);
-      html += '<div class="doctor-card">' +
-        '<div class="avatar" style="background:' + (d.color || coloresAvatar[0]) + '">' + iniciales + '</div>' +
-        '<div class="doctor-info">' +
-          '<div class="doctor-nombre">' + d.nombre + '</div>' +
-          '<div class="doctor-especialidad">' + (d.especialidad || 'Sin especialidad') + '</div>' +
-          '<div class="doctor-sub">' + (d.departamento || '') + ' · C.I: ' + (d.cedula || '') + '</div>' +
-          '<div class="doctor-badges">' +
-            '<span class="turno-badge ' + claseTurno + '">' + (d.turno || 'Sin turno') + '</span>' +
-            (d.paciente_cargo ? '<span class="paciente-badge">👤 ' + d.paciente_cargo + '</span>' : '') +
-          '</div>' +
-          '<div class="doctor-acciones">' +
-            '<button class="btn-accion ver" onclick="verDoctorDetalle(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Ver</button>' +
-            '<button class="btn-accion editar" onclick="editarDoctor(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>' +
-            '<button class="btn-accion eliminar" onclick="eliminarDoctor(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Eliminar</button>' +
-          '</div>' +
-        '</div></div>';
-    });
-    contenedor.innerHTML = html;
-  }
-
-  function actualizarStats() {
-    document.getElementById('totalDoctores').textContent = doctores.length;
-    var enTurno = doctores.filter(function(d){ return d.turno && d.turno !== ''; }).length;
-    document.getElementById('totalTurnos').textContent = enTurno;
-    var especialidades = [...new Set(doctores.map(function(d){ return d.especialidad; }).filter(Boolean))];
-    document.getElementById('totalEspecialidades').textContent = especialidades.length;
-  }
-
-  function abrirModal() {
-    editandoIdx = -1;
-    document.getElementById('modalTitulo').textContent = 'Nuevo Doctor';
-    document.getElementById('modalSub').textContent = 'Registrar información médica';
-    limpiarFormulario();
-    cambiarTab(1);
-    document.getElementById('modalRegistro').classList.add('activo');
-  }
-
-  function cerrarModal() {
-    document.getElementById('modalRegistro').classList.remove('activo');
-    editandoIdx = -1;
-  }
-
-  function cerrarDetalle() {
-    document.getElementById('modalDetalle').classList.remove('activo');
-  }
-
-  function limpiarFormulario() {
-    ['d_nombre','d_cedula','d_telefono','d_correo','d_especialidad','d_departamento','d_paciente_cargo'].forEach(function(id){
-      document.getElementById(id).value = '';
-    });
-    document.getElementById('d_turno').value = '';
-  }
-
-  function cambiarTab(num) {
-    document.getElementById('contenido-tab1').style.display = num === 1 ? 'block' : 'none';
-    document.getElementById('contenido-tab2').style.display = num === 2 ? 'block' : 'none';
-    document.getElementById('tab1').classList.toggle('active', num === 1);
-    document.getElementById('tab2').classList.toggle('active', num === 2);
-  }
-
-  function guardarDoctor() {
-    var nombre = document.getElementById('d_nombre').value.trim();
-    if (!nombre) { mostrarToast('⚠️ El nombre es obligatorio'); cambiarTab(1); return; }
-    var cedula = document.getElementById('d_cedula').value.trim();
-    if (!cedula) { mostrarToast('⚠️ La cédula es obligatoria'); cambiarTab(1); return; }
-
-    var datos = {
-      nombre: nombre,
-      cedula: cedula,
-      telefono: document.getElementById('d_telefono').value,
-      correo: document.getElementById('d_correo').value,
-      especialidad: document.getElementById('d_especialidad').value,
-      departamento: document.getElementById('d_departamento').value,
-      turno: document.getElementById('d_turno').value,
-      paciente_cargo: document.getElementById('d_paciente_cargo').value
-    };
-
-    if (editandoIdx >= 0) {
-      Object.assign(doctores[editandoIdx], datos);
-      mostrarToast('✅ Datos actualizados correctamente');
-      editandoIdx = -1;
-    } else {
-      datos.id = 'D' + (1001 + doctores.length);
-      datos.fecha_registro = new Date().toLocaleDateString('es-VE');
-      datos.color = coloresAvatar[doctores.length % coloresAvatar.length];
-      doctores.push(datos);
-      mostrarToast('✅ Doctor registrado correctamente');
-    }
-
-    renderizarLista(doctores);
-    actualizarStats();
-    cerrarModal();
-
-    if (window.AppInventor) {
-      window.AppInventor.setWebViewString('GUARDAR_DOCTOR:' + JSON.stringify(doctores));
-    }
-  }
-
-  function editarDoctor(idx) {
-    editandoIdx = idx;
-    var d = doctores[idx];
-    document.getElementById('modalTitulo').textContent = 'Editar Doctor';
-    document.getElementById('modalSub').textContent = d.nombre;
-    document.getElementById('d_nombre').value = d.nombre || '';
-    document.getElementById('d_cedula').value = d.cedula || '';
-    document.getElementById('d_telefono').value = d.telefono || '';
-    document.getElementById('d_correo').value = d.correo || '';
-    document.getElementById('d_especialidad').value = d.especialidad || '';
-    document.getElementById('d_departamento').value = d.departamento || '';
-    document.getElementById('d_turno').value = d.turno || '';
-    document.getElementById('d_paciente_cargo').value = d.paciente_cargo || '';
-    cambiarTab(1);
-    document.getElementById('modalRegistro').classList.add('activo');
-  }
-
-  function eliminarDoctor(idx) {
-    if (confirm('¿Eliminar al Dr. ' + doctores[idx].nombre + '?')) {
-      doctores.splice(idx, 1);
-      renderizarLista(doctores);
-      actualizarStats();
-      mostrarToast('🗑️ Doctor eliminado');
-      if (window.AppInventor) {
-        window.AppInventor.setWebViewString('GUARDAR_DOCTOR:' + JSON.stringify(doctores));
-      }
-    }
-  }
-
-  function verDoctorDetalle(idx) {
-    viendoIdx = idx;
-    var d = doctores[idx];
-    document.getElementById('detalle-especialidad').textContent = d.especialidad || '';
-    var html =
-      '<div class="detalle-seccion">' +
-        '<div class="detalle-titulo"><svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>Datos Personales</div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Nombre</span><span class="detalle-val">' + (d.nombre||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Cédula</span><span class="detalle-val">' + (d.cedula||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Teléfono</span><span class="detalle-val">' + (d.telefono||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Correo</span><span class="detalle-val">' + (d.correo||'—') + '</span></div>' +
-      '</div>' +
-      '<div class="detalle-seccion">' +
-        '<div class="detalle-titulo"><svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Datos Profesionales</div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Especialidad</span><span class="detalle-val">' + (d.especialidad||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Departamento</span><span class="detalle-val">' + (d.departamento||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Turno</span><span class="detalle-val">' + (d.turno||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">Paciente a cargo</span><span class="detalle-val">' + (d.paciente_cargo||'—') + '</span></div>' +
-        '<div class="detalle-fila"><span class="detalle-key">ID</span><span class="detalle-val">' + (d.id||'—') + '</span></div>' +
-      '</div>';
-    document.getElementById('detalle-contenido').innerHTML = html;
-    document.getElementById('modalDetalle').classList.add('activo');
-  }
-
-  function editarDesdeDetalle() {
-    cerrarDetalle();
-    editarDoctor(viendoIdx);
-  }
-
-  function mostrarToast(msg) {
-    var toast = document.getElementById('toast');
-    document.getElementById('toast-msg').textContent = msg;
-    toast.classList.add('activo');
-    setTimeout(function(){ toast.classList.remove('activo'); }, 3000);
-  }
-
-  function cargarDoctoresGuardados(datos) {
-    try {
-      if (datos && datos !== '[]' && datos !== '') {
-        var json = datos.replace('GUARDAR_DOCTOR:', '');
-        doctores = JSON.parse(json);
-        renderizarLista(doctores);
-        actualizarStats();
-      }
-    } catch(e) {
-      console.log('Error cargando doctores:', e);
-    }
-  }
+var doctores = [];
+var filtroActual = 'todos';
+var ordenActual = 'recientes';
+var editandoIdx = -1;
+var viendoIdx = -1;
+var coloresAvatar = ['#1565C0','#2E7D32','#6A1B9A','#AD1457','#00838F','#E65100','#37474F'];
+function navegar(cmd) {
+if (window.AppInventor) window.AppInventor.setWebViewString(cmd);
+}
+function toggleFiltro() {
+document.getElementById('filtroPanel').classList.toggle('activo');
+}
+function aplicarFiltro(valor, btn) {
+filtroActual = valor;
+document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo-filtro'));
+btn.classList.add('activo-filtro');
+renderizarLista(doctores);
+}
+function aplicarOrden(valor, btn) {
+ordenActual = valor;
+document.querySelectorAll('.filtro-btn').forEach(b => {
+if (['recientes','az','especialidad'].includes(b.getAttribute('onclick').match(/'([^']+)'/)[1])) {
+b.classList.remove('activo-filtro');
+}
+});
+btn.classList.add('activo-filtro');
+renderizarLista(doctores);
+}
+function buscarDoctor(texto) {
+var filtrados = doctores.filter(function(d) {
+return d.nombre.toLowerCase().includes(texto.toLowerCase()) ||
+d.especialidad.toLowerCase().includes(texto.toLowerCase()) ||
+d.cedula.toLowerCase().includes(texto.toLowerCase());
+});
+renderizarLista(filtrados);
+}
+function obtenerClaseTurno(turno) {
+if (turno === 'Mañana') return 'turno-manana';
+if (turno === 'Tarde') return 'turno-tarde';
+if (turno === 'Noche') return 'turno-noche';
+return 'turno-manana';
+}
+function renderizarLista(lista) {
+var filtrados = lista;
+if (filtroActual !== 'todos') {
+filtrados = lista.filter(function(d) { return d.turno === filtroActual; });
+}
+if (ordenActual === 'az') {
+filtrados = filtrados.slice().sort(function(a,b) { return a.nombre.localeCompare(b.nombre); });
+} else if (ordenActual === 'especialidad') {
+filtrados = filtrados.slice().sort(function(a,b) { return a.especialidad.localeCompare(b.especialidad); });
+}
+var contenedor = document.getElementById('listaDoctores');
+if (filtrados.length === 0) {
+contenedor.innerHTML = '<div class="lista-vacia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><p>No hay doctores registrados.<br>Registra el primero usando el botón de abajo.</p></div>';
+return;
+}
+var html = '';
+filtrados.forEach(function(d, i) {
+var idx = doctores.indexOf(d);
+var iniciales = d.nombre.split(' ').slice(0,2).map(function(n){ return n[0]; }).join('').toUpperCase();
+var claseTurno = obtenerClaseTurno(d.turno);
+html += '<div class="doctor-card">' +
+'<div class="avatar" style="background:' + (d.color || coloresAvatar[0]) + '">' + iniciales + '</div>' +
+'<div class="doctor-info">' +
+'<div class="doctor-nombre">' + d.nombre + '</div>' +
+'<div class="doctor-especialidad">' + (d.especialidad || 'Sin especialidad') + '</div>' +
+'<div class="doctor-sub">' + (d.departamento || '') + ' · C.I: ' + (d.cedula || '') + '</div>' +
+'<div class="doctor-badges">' +
+'<span class="turno-badge ' + claseTurno + '">' + (d.turno || 'Sin turno') + '</span>' +
+(d.paciente_cargo ? '<span class="paciente-badge">👤 ' + d.paciente_cargo + '</span>' : '') +
+'</div>' +
+'<div class="doctor-acciones">' +
+'<button class="btn-accion ver" onclick="verDoctorDetalle(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Ver</button>' +
+'<button class="btn-accion editar" onclick="editarDoctor(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar</button>' +
+'<button class="btn-accion eliminar" onclick="eliminarDoctor(' + idx + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Eliminar</button>' +
+'</div>' +
+'</div></div>';
+});
+contenedor.innerHTML = html;
+}
+function actualizarStats() {
+document.getElementById('totalDoctores').textContent = doctores.length;
+var enTurno = doctores.filter(function(d){ return d.turno && d.turno !== ''; }).length;
+document.getElementById('totalTurnos').textContent = enTurno;
+var especialidades = [...new Set(doctores.map(function(d){ return d.especialidad; }).filter(Boolean))];
+document.getElementById('totalEspecialidades').textContent = especialidades.length;
+}
+function abrirModal() {
+editandoIdx = -1;
+document.getElementById('modalTitulo').textContent = 'Nuevo Doctor';
+document.getElementById('modalSub').textContent = 'Registrar información médica';
+limpiarFormulario();
+cambiarTab(1);
+document.getElementById('modalRegistro').classList.add('activo');
+}
+function cerrarModal() {
+document.getElementById('modalRegistro').classList.remove('activo');
+editandoIdx = -1;
+}
+function cerrarDetalle() {
+document.getElementById('modalDetalle').classList.remove('activo');
+}
+function limpiarFormulario() {
+['d_nombre','d_cedula','d_telefono','d_correo','d_especialidad','d_departamento','d_paciente_cargo'].forEach(function(id){
+document.getElementById(id).value = '';
+});
+document.getElementById('d_turno').value = '';
+}
+function cambiarTab(num) {
+document.getElementById('contenido-tab1').style.display = num === 1 ? 'block' : 'none';
+document.getElementById('contenido-tab2').style.display = num === 2 ? 'block' : 'none';
+document.getElementById('tab1').classList.toggle('active', num === 1);
+document.getElementById('tab2').classList.toggle('active', num === 2);
+}
+function guardarDoctor() {
+var nombre = document.getElementById('d_nombre').value.trim();
+if (!nombre) { mostrarToast('⚠️ El nombre es obligatorio'); cambiarTab(1); return; }
+var cedula = document.getElementById('d_cedula').value.trim();
+if (!cedula) { mostrarToast('⚠️ La cédula es obligatoria'); cambiarTab(1); return; }
+var datos = {
+nombre: nombre,
+cedula: cedula,
+telefono: document.getElementById('d_telefono').value,
+correo: document.getElementById('d_correo').value,
+especialidad: document.getElementById('d_especialidad').value,
+departamento: document.getElementById('d_departamento').value,
+turno: document.getElementById('d_turno').value,
+paciente_cargo: document.getElementById('d_paciente_cargo').value
+};
+if (editandoIdx >= 0) {
+Object.assign(doctores[editandoIdx], datos);
+mostrarToast('✅ Datos actualizados correctamente');
+editandoIdx = -1;
+} else {
+datos.id = 'D' + (1001 + doctores.length);
+datos.fecha_registro = new Date().toLocaleDateString('es-VE');
+datos.color = coloresAvatar[doctores.length % coloresAvatar.length];
+doctores.push(datos);
+mostrarToast('✅ Doctor registrado correctamente');
+}
+renderizarLista(doctores);
+actualizarStats();
+cerrarModal();
+if (window.AppInventor) {
+window.AppInventor.setWebViewString('GUARDAR_DOCTOR:' + JSON.stringify(doctores));
+}
+}
+function editarDoctor(idx) {
+editandoIdx = idx;
+var d = doctores[idx];
+document.getElementById('modalTitulo').textContent = 'Editar Doctor';
+document.getElementById('modalSub').textContent = d.nombre;
+document.getElementById('d_nombre').value = d.nombre || '';
+document.getElementById('d_cedula').value = d.cedula || '';
+document.getElementById('d_telefono').value = d.telefono || '';
+document.getElementById('d_correo').value = d.correo || '';
+document.getElementById('d_especialidad').value = d.especialidad || '';
+document.getElementById('d_departamento').value = d.departamento || '';
+document.getElementById('d_turno').value = d.turno || '';
+document.getElementById('d_paciente_cargo').value = d.paciente_cargo || '';
+cambiarTab(1);
+document.getElementById('modalRegistro').classList.add('activo');
+}
+function eliminarDoctor(idx) {
+if (confirm('¿Eliminar al Dr. ' + doctores[idx].nombre + '?')) {
+doctores.splice(idx, 1);
+renderizarLista(doctores);
+actualizarStats();
+mostrarToast('🗑️ Doctor eliminado');
+if (window.AppInventor) {
+window.AppInventor.setWebViewString('GUARDAR_DOCTOR:' + JSON.stringify(doctores));
+}
+}
+}
+function verDoctorDetalle(idx) {
+viendoIdx = idx;
+var d = doctores[idx];
+document.getElementById('detalle-especialidad').textContent = d.especialidad || '';
+var html =
+'<div class="detalle-seccion">' +
+'<div class="detalle-titulo"><svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>Datos Personales</div>' +
+'<div class="detalle-fila"><span class="detalle-key">Nombre</span><span class="detalle-val">' + (d.nombre||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">Cédula</span><span class="detalle-val">' + (d.cedula||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">Teléfono</span><span class="detalle-val">' + (d.telefono||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">Correo</span><span class="detalle-val">' + (d.correo||'—') + '</span></div>' +
+'</div>' +
+'<div class="detalle-seccion">' +
+'<div class="detalle-titulo"><svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Datos Profesionales</div>' +
+'<div class="detalle-fila"><span class="detalle-key">Especialidad</span><span class="detalle-val">' + (d.especialidad||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">Departamento</span><span class="detalle-val">' + (d.departamento||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">Turno</span><span class="detalle-val">' + (d.turno||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">Paciente a cargo</span><span class="detalle-val">' + (d.paciente_cargo||'—') + '</span></div>' +
+'<div class="detalle-fila"><span class="detalle-key">ID</span><span class="detalle-val">' + (d.id||'—') + '</span></div>' +
+'</div>';
+document.getElementById('detalle-contenido').innerHTML = html;
+document.getElementById('modalDetalle').classList.add('activo');
+}
+function editarDesdeDetalle() {
+cerrarDetalle();
+editarDoctor(viendoIdx);
+}
+function mostrarToast(msg) {
+var toast = document.getElementById('toast');
+document.getElementById('toast-msg').textContent = msg;
+toast.classList.add('activo');
+setTimeout(function(){ toast.classList.remove('activo'); }, 3000);
+}
+function cargarDoctoresGuardados(datos) {
+try {
+if (datos && datos !== '[]' && datos !== '') {
+var json = datos.replace('GUARDAR_DOCTOR:', '');
+doctores = JSON.parse(json);
+renderizarLista(doctores);
+actualizarStats();
+}
+} catch(e) {
+console.log('Error cargando doctores:', e);
+}
+}
 </script>
 </body>
 </html>
