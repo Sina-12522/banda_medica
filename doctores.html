@@ -484,7 +484,7 @@ renderizarLista(doctores);
 actualizarStats();
 mostrarToast('🗑️ Doctor eliminado');
 if (window.AppInventor) {
-window.AppInventor.setWebViewString('GUARDAR_DOCTOR:' + JSON.stringify(doctores));
+window.AppInventor.setWebViewString("GUARDAR_DOCTOR:" + JSON.stringify(doctores));
 }
 }
 }
