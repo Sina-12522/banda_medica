@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Acceso - Hospital Dr. José Gregorio Hernández</title>
+<style>
+  :root {
+    --azul: #1565C0;
+    --azul-claro: #1976D2;
+    --azul-fondo: #EEF2FB;
+    --verde: #2E7D32;
+    --rojo: #C62828;
+    --gris: #64748B;
+    --borde: #E3EAF5;
+    --texto: #1A2940;
+    --blanco: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(160deg, #1565C0 0%, #1976D2 40%, #EEF2FB 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    overflow-x: hidden;
+  }
+
+  .top-section {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s ease;
+  }
+
+  .icono-hospital {
+    width: 72px;
+    height: 72px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(10px);
+  }
+
+  .icono-hospital svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hospital-nombre {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+
+  .hospital-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 500;
+  }
+
+  .card {
+    background: var(--blanco);
+    border-radius: 24px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(21,101,192,0.25);
+    animation: fadeUp 0.6s ease;
+  }
+
+  .card-titulo {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--texto);
+    margin-bottom: 4px;
+  }
+
+  .card-sub {
+    font-size: 13px;
+    color: var(--gris);
+    margin-bottom: 24px;
+  }
+
+  .form-grupo {
+    margin-bottom: 14px;
+  }
+
+  .form-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gris);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    color: var(--gris);
+    pointer-events: none;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    border: 1.5px solid var(--borde);
+    border-radius: 12px;
+    font-size: 14px;
+    background: var(--azul-fondo);
+    color: var(--texto);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--azul);
+    background: white;
+  }
+
+  .form-input::placeholder {
+    color: #B0BEC5;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--borde);
+    margin: 20px 0;
+  }
+
+  .btn-entrar {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--azul), var(--azul-claro));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+    box-shadow: 0 6px 20px rgba(21,101,192,0.35);
+    transition: opacity 0.2s, transform 0.1s;
+    font-family: inherit;
+  }
+
+  .btn-entrar:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  .btn-entrar svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .msg-error {
+    display: none;
+    background: #FFEBEE;
+    border: 1px solid #FFCDD2;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rojo);
+    margin-top: 12px;
+    text-align: center;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .msg-error.visible {
+    display: flex;
+  }
+
+  .msg-error svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .footer-text {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 20px;
+    animation: fadeUp 0.8s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .input-wrap.activo svg {
+    color: var(--azul);
+  }
+</style>
+</head>
+<body>
+
+<div class="top-section">
+  <div class="icono-hospital">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </div>
+  <div class="hospital-nombre">Hospital Dr. José Gregorio Hernández</div>
+  <div class="hospital-sub">Edo. Trujillo · Sistema de Monitoreo Médico</div>
+</div>
+
+<div class="card">
+  <div class="card-titulo">Bienvenido 👋</div>
+  <div class="card-sub">Ingresa tus credenciales para continuar</div>
+
+  <div class="form-grupo">
+    <label class="form-label">Nombre del médico</label>
+    <div class="input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M20 21a8 8 0 1 0-16 0"/>
+      </svg>
+      <input type="text" class="form-input" id="inp_nombre" placeholder="Ej: Dr. Carlos Pérez" oninput="limpiarError()"/>
+    </div>
+  </div>
+
+  <div class="form-grupo">
+    <label class="form-label">Usuario</label>
+    <div class="input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <input type="text" class="form-input" id="inp_usuario" placeholder="Usuario" oninput="limpiarError()"/>
+    </div>
+  </div>
+
+  <div class="form-grupo">
+    <label class="form-label">Contraseña</label>
+    <div class="input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+      </svg>
+      <input type="password" class="form-input" id="inp_password" placeholder="••••••••" oninput="limpiarError()"/>
+    </div>
+  </div>
+
+  <button class="btn-entrar" onclick="iniciarSesion()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+      <polyline points="10 17 15 12 10 7"/>
+      <line x1="15" y1="12" x2="3" y2="12"/>
+    </svg>
+    Ingresar al sistema
+  </button>
+
+  <div class="msg-error" id="msgError">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    Usuario o contraseña incorrectos
+  </div>
+</div>
+
+<div class="footer-text">Dr. Benito Díaz · Sistema seguro de monitoreo</div>
+
+<script>
+  var USUARIO_CORRECTO = "doctorbenitodíaz";
+  var PASSWORD_CORRECTA = "emergencia.1";
+
+  function iniciarSesion() {
+    var nombre = document.getElementById('inp_nombre').value.trim();
+    var usuario = document.getElementById('inp_usuario').value.trim();
+    var password = document.getElementById('inp_password').value;
+
+    if (!nombre) {
+      mostrarError('Ingresa el nombre del médico');
+      return;
+    }
+
+    if (usuario === USUARIO_CORRECTO && password === PASSWORD_CORRECTA) {
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString('LOGIN_OK:' + nombre);
+      }
+    } else {
+      mostrarError('Usuario o contraseña incorrectos');
+    }
+  }
+
+  function mostrarError(msg) {
+    var el = document.getElementById('msgError');
+    el.querySelector('span') ? el.querySelector('span').textContent = msg : null;
+    el.classList.add('visible');
+  }
+
+  function limpiarError() {
+    document.getElementById('msgError').classList.remove('visible');
+  }
+
+  // Permitir Enter para iniciar sesión
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') iniciarSesion();
+  });
+</script>
+</body>
+      </html>
