@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Reportes - Hospital Dr. José Gregorio Hernández</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --azul: #1565C0;
+    --azul-claro: #1976D2;
+    --azul-fondo: #EEF2FB;
+    --verde: #2E7D32;
+    --verde-claro: #E8F5E9;
+    --amarillo: #F57F17;
+    --amarillo-claro: #FFF8E1;
+    --rojo: #C62828;
+    --rojo-claro: #FFEBEE;
+    --gris: #64748B;
+    --borde: #E3EAF5;
+    --texto: #1A2940;
+    --blanco: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F0F4F8; color: var(--texto); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+  .header { background: var(--blanco); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-logo { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .header-logo svg { width: 20px; height: 20px; }
+  .header-title { font-size: 15px; font-weight: 700; color: var(--texto); }
+  .header-sub { font-size: 11px; color: var(--gris); }
+  .btn-inicio { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .btn-inicio svg { width: 18px; height: 18px; }
+
+  .content { flex: 1; padding: 12px; padding-bottom: 80px; display: flex; flex-direction: column; gap: 12px; }
+
+  .bienvenida { background: linear-gradient(135deg, var(--azul), var(--azul-claro)); border-radius: 16px; padding: 16px; color: white; }
+  .bienvenida-nombre { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+  .bienvenida-sub { font-size: 12px; opacity: 0.85; }
+
+  .buscar-row { display: flex; gap: 8px; align-items: center; }
+  .buscar-input-wrap { flex: 1; position: relative; }
+  .buscar-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--gris); }
+  .buscar-input { width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid var(--borde); border-radius: 12px; font-size: 13px; background: var(--blanco); outline: none; color: var(--texto); }
+  .buscar-input:focus { border-color: var(--azul); }
+
+  .tabs-filtro { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+  .tabs-filtro::-webkit-scrollbar { display: none; }
+  .tab-filtro { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--borde); font-size: 12px; font-weight: 600; cursor: pointer; background: var(--blanco); color: var(--gris); white-space: nowrap; }
+  .tab-filtro.activo { border-color: var(--azul); background: var(--azul-fondo); color: var(--azul); }
+
+  .seccion-titulo { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+
+  .reporte-card { background: var(--blanco); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--borde); margin-bottom: 8px; }
+  .avatar { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; flex-shrink: 0; background: var(--azul); }
+  .reporte-info { flex: 1; min-width: 0; }
+  .reporte-nombre { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .reporte-sub { font-size: 11px; color: var(--gris); margin-bottom: 5px; }
+  .reporte-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 20px; display: flex; align-items: center; gap: 3px; }
+  .badge svg { width: 10px; height: 10px; }
+  .badge-rojo { background: var(--rojo-claro); color: var(--rojo); }
+  .badge-azul { background: var(--azul-fondo); color: var(--azul); }
+  .badge-verde { background: var(--verde-claro); color: var(--verde); }
+  .reporte-fecha { font-size: 10px; color: var(--gris); text-align: right; margin-bottom: 6px; white-space: nowrap; }
+  .reporte-derecha { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .btn-pdf { background: var(--azul-fondo); border: 1.5px solid var(--azul); border-radius: 10px; padding: 7px 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+  .btn-pdf svg { width: 16px; height: 16px; color: var(--azul); }
+  .btn-pdf span { font-size: 9px; font-weight: 700; color: var(--azul); }
+
+  .lista-vacia { text-align: center; padding: 30px 20px; color: var(--gris); }
+  .lista-vacia svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .lista-vacia p { font-size: 13px; }
+
+  .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--blanco); border-top: 1px solid var(--borde); display: flex; justify-content: space-around; padding: 8px 0 12px; z-index: 100; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: var(--gris); cursor: pointer; padding: 4px 12px; border: none; background: none; flex: 1; }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item.active { color: var(--azul); font-weight: 700; }
+
+  /* MODAL DETALLE */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; overflow-y: auto; }
+  .modal-overlay.activo { display: flex; }
+  .modal { background: #F0F4F8; border-radius: 20px 20px 0 0; width: 100%; margin-top: auto; min-height: 90vh; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-header { background: var(--blanco); padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--borde); border-radius: 20px 20px 0 0; }
+  .btn-atras { width: 36px; height: 36px; background: var(--azul-fondo); border-radius: 10px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .btn-atras svg { width: 18px; height: 18px; }
+  .modal-titulo { font-size: 15px; font-weight: 700; flex: 1; }
+  .modal-sub-titulo { font-size: 11px; color: var(--gris); }
+
+  .modal-content { padding: 12px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 100px; }
+
+  .ficha-paciente { background: var(--blanco); border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--borde); }
+  .ficha-info { flex: 1; }
+  .ficha-nombre { font-size: 15px; font-weight: 700; }
+  .ficha-sub { font-size: 12px; color: var(--gris); margin-top: 2px; }
+  .badge-estado { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: var(--verde-claro); color: var(--verde); display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; }
+
+  .tabs-detalle { display: flex; background: var(--blanco); border-radius: 12px; padding: 3px; border: 1px solid var(--borde); }
+  .tab-detalle { flex: 1; padding: 8px 4px; font-size: 10px; font-weight: 600; text-align: center; border-radius: 9px; border: none; background: none; color: var(--gris); cursor: pointer; }
+  .tab-detalle.active { background: var(--azul); color: white; }
+
+  .metricas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .metrica-card { background: var(--blanco); border-radius: 14px; padding: 12px 10px; text-align: center; border: 1px solid var(--borde); }
+  .metrica-icono { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .metrica-icono svg { width: 18px; height: 18px; }
+  .metrica-valor { font-size: 20px; font-weight: 800; line-height: 1; }
+  .metrica-unidad { font-size: 9px; color: var(--gris); margin-top: 2px; }
+  .metrica-label { font-size: 9px; color: var(--gris); margin-top: 4px; }
+  .metrica-rango { font-size: 9px; color: var(--gris); margin-top: 2px; }
+
+  .grafica-card { background: var(--blanco); border-radius: 14px; padding: 14px; border: 1px solid var(--borde); }
+  .grafica-titulo { font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .grafica-titulo svg { width: 16px; height: 16px; }
+  .grafica-canvas { width: 100%; height: 160px; }
+
+  .dispositivo-card { background: var(--blanco); border-radius: 14px; padding: 14px; border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; }
+  .dispositivo-icono { width: 44px; height: 44px; background: var(--azul-fondo); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .dispositivo-icono svg { width: 24px; height: 24px; }
+  .dispositivo-info { flex: 1; }
+  .dispositivo-nombre { font-size: 13px; font-weight: 700; }
+  .dispositivo-sub { font-size: 11px; color: var(--verde); font-weight: 600; margin-top: 2px; }
+  .dispositivo-bateria { font-size: 11px; color: var(--gris); }
+
+  .btns-accion { display: flex; gap: 8px; }
+  .btn-secundario { flex: 1; padding: 13px; background: var(--blanco); border: 1.5px solid var(--azul); border-radius: 14px; font-size: 13px; font-weight: 700; color: var(--azul); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; }
+  .btn-primario { flex: 2; padding: 13px; background: var(--azul); border: none; border-radius: 14px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; }
+  .btn-primario svg, .btn-secundario svg { width: 16px; height: 16px; }
+
+  /* MODAL PDF PREVIEW */
+  .pdf-modal { background: #F0F4F8; }
+  .pdf-paper { background: white; margin: 12px; border-radius: 14px; padding: 20px 16px; border: 1px solid var(--borde); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .pdf-header-doc { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--azul); }
+  .pdf-logo-texto { font-size: 13px; font-weight: 800; color: var(--azul); }
+  .pdf-logo-sub { font-size: 10px; color: var(--gris); margin-top: 2px; }
+  .pdf-fecha-doc { font-size: 10px; color: var(--gris); text-align: right; }
+
+  .pdf-seccion { margin-bottom: 14px; }
+  .pdf-seccion-titulo { font-size: 11px; font-weight: 800; color: var(--azul); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--borde); }
+  .pdf-paciente-fila { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .pdf-avatar { width: 38px; height: 38px; border-radius: 10px; background: var(--azul); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .pdf-paciente-datos { flex: 1; }
+  .pdf-paciente-nombre { font-size: 13px; font-weight: 700; }
+  .pdf-paciente-sub { font-size: 11px; color: var(--gris); }
+  .pdf-grid-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pdf-dato { font-size: 11px; }
+  .pdf-dato-key { color: var(--gris); }
+  .pdf-dato-val { font-weight: 600; color: var(--texto); }
+
+  .pdf-metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+  .pdf-metrica { border: 1px solid var(--borde); border-radius: 10px; padding: 8px 6px; text-align: center; }
+  .pdf-metrica-val { font-size: 16px; font-weight: 800; color: var(--azul); }
+  .pdf-metrica-label { font-size: 9px; color: var(--gris); margin-top: 2px; }
+
+  .pdf-ecg { background: #F8FFF8; border: 1px solid #C8E6C9; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+  .pdf-ecg canvas { width: 100%; height: 80px; }
+
+  .pdf-observaciones { background: var(--azul-fondo); border-radius: 10px; padding: 10px 12px; font-size: 12px; color: var(--texto); line-height: 1.5; }
+
+  .pdf-footer { text-align: center; font-size: 10px; color: var(--gris); margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--borde); }
+
+  .tab-contenido { display: none; }
+  .tab-contenido.activo { display: flex; flex-direction: column; gap: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Hospital Dr. JGH</div>
+      <div class="header-sub">Sistema de monitoreo</div>
+    </div>
+  </div>
+  <button class="btn-inicio" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9,22 9,12 15,12 15,22"/>
+    </svg>
+  </button>
+</div>
+
+<div class="content">
+  <div class="bienvenida">
+    <div class="bienvenida-nombre">Reportes Médicos</div>
+    <div class="bienvenida-sub">Consulta y descarga los reportes de tus pacientes</div>
+  </div>
+
+  <div class="buscar-row">
+    <div class="buscar-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="buscar-input" placeholder="Buscar paciente..." oninput="buscarPaciente(this.value)"/>
+    </div>
+  </div>
+
+  <div class="tabs-filtro">
+    <button class="tab-filtro activo" onclick="filtrarTipo('todos', this)">Todos</button>
+    <button class="tab-filtro" onclick="filtrarTipo('completo', this)">Reporte completo</button>
+    <button class="tab-filtro" onclick="filtrarTipo('bpm', this)">Ritmo cardíaco</button>
+    <button class="tab-filtro" onclick="filtrarTipo('spo2', this)">Oxígeno</button>
+  </div>
+
+  <div>
+    <div class="seccion-titulo">Pacientes registrados</div>
+    <div id="listaReportes">
+      <div class="lista-vacia">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <p>No hay pacientes registrados.<br>Agrega pacientes en la sección Pacientes.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="navbar">
+  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    Inicio
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN4')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Pacientes
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN2')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Monitoreo
+  </button>
+  <button class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Reportes
+  </button>
+  <button class="nav-item" onclick="navegar('IR_SCREEN5')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+    Doctores
+  </button>
+</div>
+
+<!-- MODAL DETALLE REPORTE -->
+<div class="modal-overlay" id="modalDetalle">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="btn-atras" onclick="cerrarDetalle()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div style="flex:1">
+        <div class="modal-titulo">Reporte del Paciente</div>
+        <div class="modal-sub-titulo">Resumen del análisis</div>
+      </div>
+    </div>
+
+    <div class="modal-content">
+      <div class="ficha-paciente">
+        <div class="avatar" id="det-avatar" style="width:48px;height:48px;border-radius:14px;font-size:16px;">MR</div>
+        <div class="ficha-info">
+          <div class="ficha-nombre" id="det-nombre">—</div>
+          <div class="ficha-sub" id="det-sub">—</div>
+          <div class="badge-estado">● Normal</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--gris)" id="det-fecha">—</div>
+        </div>
+      </div>
+
+      <div class="tabs-detalle">
+        <button class="tab-detalle active" onclick="cambiarTabDetalle(0, this)">Resumen</button>
+        <button class="tab-detalle" onclick="cambiarTabDetalle(1, this)">Tendencias</button>
+        <button class="tab-detalle" onclick="cambiarTabDetalle(2, this)">Dispositivo</button>
+      </div>
+
+      <!-- TAB 0: RESUMEN -->
+      <div class="tab-contenido activo" id="tab-resumen">
+        <div class="metricas-grid">
+          <div class="metrica-card">
+            <div class="metrica-icono" style="background:#FFEBEE;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="metrica-valor" id="det-bpm" style="color:#C62828;">—</div>
+            <div class="metrica-unidad">lpm</div>
+            <div class="metrica-label">Ritmo cardíaco</div>
+            <div class="metrica-rango">Normal: 60-100</div>
+          </div>
+          <div class="metrica-card">
+            <div class="metrica-icono" style="background:#EEF2FB;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div class="metrica-valor" id="det-spo2" style="color:#1565C0;">—</div>
+            <div class="metrica-unidad">%</div>
+            <div class="metrica-label">Oxígeno en sangre</div>
+            <div class="metrica-rango">Normal: 95-100%</div>
+          </div>
+          <div class="metrica-card">
+            <div class="metrica-icono" style="background:#E8F5E9;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="metrica-valor" style="color:#2E7D32;font-size:13px;margin-top:4px;">Normal</div>
+            <div class="metrica-unidad"> </div>
+            <div class="metrica-label">Electrocardiograma</div>
+            <div class="metrica-rango">Sin anomalías</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 1: TENDENCIAS -->
+      <div class="tab-contenido" id="tab-tendencias">
+        <div class="grafica-card">
+          <div class="grafica-titulo" style="color:#C62828;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Ritmo cardíaco — últimas 8 horas
+          </div>
+          <canvas id="graficaBPM" class="grafica-canvas"></canvas>
+        </div>
+        <div class="grafica-card">
+          <div class="grafica-titulo" style="color:#1565C0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            Oxígeno en sangre — últimas 8 horas
+          </div>
+          <canvas id="graficaSPO2" class="grafica-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- TAB 2: DISPOSITIVO -->
+      <div class="tab-contenido" id="tab-dispositivo">
+        <div class="dispositivo-card">
+          <div class="dispositivo-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <div class="dispositivo-info">
+            <div class="dispositivo-nombre">Banda Inteligente ESP32</div>
+            <div class="dispositivo-sub">● Conectado</div>
+          </div>
+          <div class="dispositivo-bateria">🔋 85%</div>
+        </div>
+      </div>
+
+      <div class="btns-accion">
+        <button class="btn-secundario" onclick="verPreviewPDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Vista previa
+        </button>
+        <button class="btn-primario" onclick="descargarPDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PREVIEW PDF -->
+<div class="modal-overlay" id="modalPDF">
+  <div class="modal pdf-modal">
+    <div class="modal-header">
+      <button class="btn-atras" onclick="cerrarPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div style="flex:1">
+        <div class="modal-titulo">Vista previa del reporte</div>
+        <div class="modal-sub-titulo">Documento listo para descargar</div>
+      </div>
+    </div>
+
+    <div style="padding:12px;padding-bottom:100px;">
+      <div class="pdf-paper" id="pdfPaper">
+        <div class="pdf-header-doc">
+          <div>
+            <div class="pdf-logo-texto">🏥 Hospital Dr. José Gregorio Hernández</div>
+            <div class="pdf-logo-sub">Reporte Médico · Edo. Trujillo</div>
+          </div>
+          <div class="pdf-fecha-doc" id="pdf-fecha-header">—</div>
+        </div>
+
+        <div class="pdf-seccion">
+          <div class="pdf-seccion-titulo">Información del paciente</div>
+          <div class="pdf-paciente-fila">
+            <div class="pdf-avatar" id="pdf-avatar">—</div>
+            <div class="pdf-paciente-datos">
+              <div class="pdf-paciente-nombre" id="pdf-nombre">—</div>
+              <div class="pdf-paciente-sub" id="pdf-sub">—</div>
+            </div>
+          </div>
+          <div class="pdf-grid-datos">
+            <div class="pdf-dato"><span class="pdf-dato-key">Cédula: </span><span class="pdf-dato-val" id="pdf-cedula">—</span></div>
+            <div class="pdf-dato"><span class="pdf-dato-key">Fecha nac.: </span><span class="pdf-dato-val" id="pdf-fnac">—</span></div>
+            <div class="pdf-dato"><span class="pdf-dato-key">Sexo: </span><span class="pdf-dato-val" id="pdf-sexo">—</span></div>
+            <div class="pdf-dato"><span class="pdf-dato-key">Teléfono: </span><span class="pdf-dato-val" id="pdf-tel">—</span></div>
+            <div class="pdf-dato"><span class="pdf-dato-key">Sangre: </span><span class="pdf-dato-val" id="pdf-sangre">—</span></div>
+            <div class="pdf-dato"><span class="pdf-dato-key">Estado: </span><span class="pdf-dato-val" id="pdf-estado">—</span></div>
+          </div>
+        </div>
+
+        <div class="pdf-seccion">
+          <div class="pdf-seccion-titulo">Resumen de resultados</div>
+          <div class="pdf-metricas">
+            <div class="pdf-metrica">
+              <div class="pdf-metrica-val" id="pdf-bpm" style="color:#C62828;">—</div>
+              <div class="pdf-metrica-label">❤️ BPM</div>
+            </div>
+            <div class="pdf-metrica">
+              <div class="pdf-metrica-val" id="pdf-spo2" style="color:#1565C0;">—</div>
+              <div class="pdf-metrica-label">💧 SpO2 %</div>
+            </div>
+            <div class="pdf-metrica">
+              <div class="pdf-metrica-val" style="color:#2E7D32;font-size:13px;">Normal</div>
+              <div class="pdf-metrica-label">〜 ECG</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pdf-seccion">
+          <div class="pdf-seccion-titulo">Electrocardiograma</div>
+          <div class="pdf-ecg">
+            <canvas id="pdfECG" style="width:100%;height:70px;"></canvas>
+          </div>
+        </div>
+
+        <div class="pdf-seccion">
+          <div class="pdf-seccion-titulo">Observaciones</div>
+          <div class="pdf-observaciones" id="pdf-obs">Paciente estable. Continuar con monitoreo rutinario.</div>
+        </div>
+
+        <div class="pdf-footer">Página 1 de 1 · Hospital Dr. José Gregorio Hernández · Edo. Trujillo</div>
+      </div>
+
+      <div class="btns-accion" style="margin-top:12px;">
+        <button class="btn-primario" onclick="descargarPDF()" style="flex:1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var pacientes = [
+    { id:'P1001', nombre:'Maria Rodriguez', cedula:'V-12345678', edad:'45', sexo:'Femenino', telefono:'0414-1234567', fecha_nac:'12/08/1978', bpm_normal:'78', spo2_min:'97', sangre:'O+', alergias:'Penicilina', enfermedades:'Hipertension leve', medicamentos:'Enalapril 10mg', direccion:'Av. Principal, Trujillo', estado:'Activo' },
+    { id:'P1002', nombre:'Jose Lopez', cedula:'V-87654321', edad:'60', sexo:'Masculino', telefono:'0424-7654321', fecha_nac:'05/03/1963', bpm_normal:'82', spo2_min:'95', sangre:'A+', alergias:'Ninguna', enfermedades:'Diabetes tipo 2', medicamentos:'Metformina 500mg', direccion:'Calle 5, Valera', estado:'Activo' }
+  ];
+  var pacienteActual = null;
+  var filtroActual = 'todos';
+  var chartBPM = null;
+  var chartSPO2 = null;
+  var chartECG = null;
+  var coloresAvatar = ['#1565C0','#2E7D32','#6A1B9A','#AD1457','#00838F','#E65100','#37474F'];
+
+  function navegar(cmd) {
+    if (window.AppInventor) window.AppInventor.setWebViewString(cmd);
+  }
+
+  // Renderizar lista al cargar
+  window.onload = function() { renderizarLista(pacientes); };
+
+  function cargarPacientesGuardados(datos) {
+    try {
+      if (datos && datos !== '[]' && datos !== '') {
+        var json = datos.replace('GUARDAR_PACIENTE:', '');
+        pacientes = JSON.parse(json);
+        renderizarLista(pacientes);
+      }
+    } catch(e) {
+      console.log('Error:', e);
+    }
+  }
+
+  function renderizarLista(lista) {
+    var contenedor = document.getElementById('listaReportes');
+    if (!lista || lista.length === 0) {
+      contenedor.innerHTML = '<div class="lista-vacia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No hay pacientes registrados.<br>Agrega pacientes en la sección Pacientes.</p></div>';
+      return;
+    }
+    var html = '';
+    lista.forEach(function(p, i) {
+      var iniciales = (p.nombre||'?').split(' ').slice(0,2).map(function(n){ return n[0]||''; }).join('').toUpperCase();
+      var color = coloresAvatar[i % coloresAvatar.length];
+      var fecha = new Date().toLocaleDateString('es-VE') + ' - ' + new Date().toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit'});
+      html += '<div class="reporte-card">' +
+        '<div class="avatar" style="background:' + color + ';">' + iniciales + '</div>' +
+        '<div class="reporte-info">' +
+          '<div class="reporte-nombre">' + (p.nombre||'Sin nombre') + '</div>' +
+          '<div class="reporte-sub">ID: ' + (p.id||'—') + ' · ' + (p.edad||'—') + ' años · ' + (p.sexo||'—') + '</div>' +
+          '<div class="reporte-badges">' +
+            '<span class="badge badge-rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' + (p.bpm_normal||'—') + ' BPM</span>' +
+            '<span class="badge badge-azul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' + (p.spo2_min||'—') + '% SpO2</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="reporte-derecha">' +
+          '<div class="reporte-fecha">' + fecha + '</div>' +
+          '<button class="btn-pdf" onclick="abrirDetalle(' + i + ')">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+            '<span>PDF</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    });
+    contenedor.innerHTML = html;
+  }
+
+  function buscarPaciente(texto) {
+    var filtrados = pacientes.filter(function(p) {
+      return (p.nombre||'').toLowerCase().includes(texto.toLowerCase()) ||
+             (p.cedula||'').toLowerCase().includes(texto.toLowerCase());
+    });
+    renderizarLista(filtrados);
+  }
+
+  function filtrarTipo(tipo, btn) {
+    filtroActual = tipo;
+    document.querySelectorAll('.tab-filtro').forEach(function(b){ b.classList.remove('activo'); });
+    btn.classList.add('activo');
+    renderizarLista(pacientes);
+  }
+
+  function abrirDetalle(idx) {
+    pacienteActual = pacientes[idx];
+    var p = pacienteActual;
+    var iniciales = (p.nombre||'?').split(' ').slice(0,2).map(function(n){ return n[0]||''; }).join('').toUpperCase();
+    var color = coloresAvatar[idx % coloresAvatar.length];
+    var fecha = new Date().toLocaleDateString('es-VE') + ' - ' + new Date().toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit'});
+
+    document.getElementById('det-avatar').textContent = iniciales;
+    document.getElementById('det-avatar').style.background = color;
+    document.getElementById('det-nombre').textContent = p.nombre||'—';
+    document.getElementById('det-sub').textContent = 'ID: ' + (p.id||'—') + ' · ' + (p.edad||'—') + ' años · ' + (p.sexo||'—');
+    document.getElementById('det-fecha').textContent = fecha;
+    document.getElementById('det-bpm').textContent = p.bpm_normal||'—';
+    document.getElementById('det-spo2').textContent = p.spo2_min||'—';
+
+    cambiarTabDetalle(0, document.querySelector('.tab-detalle'));
+    document.getElementById('modalDetalle').classList.add('activo');
+    setTimeout(function(){ dibujarGraficas(p); }, 300);
+  }
+
+  function cerrarDetalle() {
+    document.getElementById('modalDetalle').classList.remove('activo');
+    if (chartBPM) { chartBPM.destroy(); chartBPM = null; }
+    if (chartSPO2) { chartSPO2.destroy(); chartSPO2 = null; }
+  }
+
+  function cambiarTabDetalle(num, btn) {
+    document.querySelectorAll('.tab-contenido').forEach(function(t){ t.classList.remove('activo'); });
+    document.querySelectorAll('.tab-detalle').forEach(function(t){ t.classList.remove('active'); });
+    var tabs = ['tab-resumen','tab-tendencias','tab-dispositivo'];
+    document.getElementById(tabs[num]).classList.add('activo');
+    document.querySelectorAll('.tab-detalle')[num].classList.add('active');
+    if (num === 1 && pacienteActual) {
+      setTimeout(function(){ dibujarGraficas(pacienteActual); }, 100);
+    }
+  }
+
+  function generarDatosTendencia(base, variacion, puntos) {
+    var datos = [];
+    for (var i = 0; i < puntos; i++) {
+      var val = parseInt(base) + Math.floor((Math.random() - 0.5) * variacion * 2);
+      datos.push(val);
+    }
+    return datos;
+  }
+
+  function dibujarGraficas(p) {
+    var horas = ['8am','9am','10am','11am','12pm','1pm','2pm','3pm'];
+    var bpmBase = parseInt(p.bpm_normal) || 75;
+    var spo2Base = parseInt(p.spo2_min) || 97;
+    var datosBPM = generarDatosTendencia(bpmBase, 8, 8);
+    var datosSPO2 = generarDatosTendencia(spo2Base, 2, 8);
+
+    var optComun = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#F0F4F8' }, ticks: { font: { size: 10 } } }
+      },
+      elements: { point: { radius: 3 }, line: { tension: 0.4 } }
+    };
+
+    if (chartBPM) chartBPM.destroy();
+    chartBPM = new Chart(document.getElementById('graficaBPM'), {
+      type: 'line',
+      data: { labels: horas, datasets: [{ data: datosBPM, borderColor: '#C62828', backgroundColor: 'rgba(198,40,40,0.08)', fill: true, borderWidth: 2 }] },
+      options: JSON.parse(JSON.stringify(optComun))
+    });
+
+    if (chartSPO2) chartSPO2.destroy();
+    chartSPO2 = new Chart(document.getElementById('graficaSPO2'), {
+      type: 'line',
+      data: { labels: horas, datasets: [{ data: datosSPO2, borderColor: '#1565C0', backgroundColor: 'rgba(21,101,192,0.08)', fill: true, borderWidth: 2 }] },
+      options: JSON.parse(JSON.stringify(optComun))
+    });
+  }
+
+  function verPreviewPDF() {
+    if (!pacienteActual) return;
+    var p = pacienteActual;
+    var iniciales = (p.nombre||'?').split(' ').slice(0,2).map(function(n){ return n[0]||''; }).join('').toUpperCase();
+    var fecha = new Date().toLocaleDateString('es-VE') + ' · ' + new Date().toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit'});
+
+    document.getElementById('pdf-fecha-header').textContent = fecha;
+    document.getElementById('pdf-avatar').textContent = iniciales;
+    document.getElementById('pdf-nombre').textContent = p.nombre||'—';
+    document.getElementById('pdf-sub').textContent = 'ID: ' + (p.id||'—') + ' · ' + (p.edad||'—') + ' años · ' + (p.sexo||'—');
+    document.getElementById('pdf-cedula').textContent = p.cedula||'—';
+    document.getElementById('pdf-fnac').textContent = p.fecha_nac||'—';
+    document.getElementById('pdf-sexo').textContent = p.sexo||'—';
+    document.getElementById('pdf-tel').textContent = p.telefono||'—';
+    document.getElementById('pdf-sangre').textContent = p.sangre||'—';
+    document.getElementById('pdf-estado').textContent = p.estado||'—';
+    document.getElementById('pdf-bpm').textContent = p.bpm_normal||'—';
+    document.getElementById('pdf-spo2').textContent = p.spo2_min||'—';
+
+    var obs = '';
+    if (p.enfermedades) obs += 'Enfermedades: ' + p.enfermedades + '. ';
+    if (p.medicamentos) obs += 'Medicamentos: ' + p.medicamentos + '. ';
+    if (p.alergias) obs += 'Alergias: ' + p.alergias + '. ';
+    if (!obs) obs = 'Paciente estable. Continuar con monitoreo rutinario.';
+    document.getElementById('pdf-obs').textContent = obs;
+
+    document.getElementById('modalPDF').classList.add('activo');
+    setTimeout(function(){ dibujarECGpdf(); }, 300);
+  }
+
+  function dibujarECGpdf() {
+    var canvas = document.getElementById('pdfECG');
+    if (!canvas) return;
+    if (chartECG) { chartECG.destroy(); chartECG = null; }
+    var puntos = 30;
+    var datos = [];
+    for (var i = 0; i < puntos; i++) {
+      var v = 0;
+      var pos = i % 10;
+      if (pos === 2) v = 0.3;
+      else if (pos === 3) v = -0.2;
+      else if (pos === 4) v = 1;
+      else if (pos === 5) v = -0.5;
+      else if (pos === 6) v = 0.1;
+      else if (pos === 7) v = 0.3;
+      else if (pos === 8) v = 0.1;
+      datos.push(v);
+    }
+    chartECG = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: datos.map(function(_,i){ return i; }),
+        datasets: [{ data: datos, borderColor: '#2E7D32', borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.1 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { display: false }, y: { display: false, min: -0.8, max: 1.2 } },
+        animation: false
+      }
+    });
+  }
+
+  function cerrarPDF() {
+    document.getElementById('modalPDF').classList.remove('activo');
+    if (chartECG) { chartECG.destroy(); chartECG = null; }
+  }
+
+  function descargarPDF() {
+    if (!pacienteActual) return;
+    var p = pacienteActual;
+
+    try {
+      var doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var fecha = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit'});
+
+      // Encabezado
+      doc.setFillColor(21, 101, 192);
+      doc.rect(0, 0, 210, 28, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Hospital Dr. Jose Gregorio Hernandez', 14, 12);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Reporte Medico - Edo. Trujillo', 14, 19);
+      doc.text('Fecha: ' + fecha, 140, 19);
+
+      // Avatar iniciales
+      var iniciales = (p.nombre||'?').split(' ').slice(0,2).map(function(n){ return n[0]||''; }).join('').toUpperCase();
+      doc.setFillColor(21, 101, 192);
+      doc.roundedRect(14, 34, 18, 18, 3, 3, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(12);
+      doc.setFont('helvetica','bold');
+      doc.text(iniciales, 23, 45, {align:'center'});
+
+      // Datos paciente
+      doc.setTextColor(26, 41, 64);
+      doc.setFontSize(13);
+      doc.setFont('helvetica','bold');
+      doc.text(p.nombre||'—', 36, 40);
+      doc.setFontSize(9);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text('ID: ' + (p.id||'—') + '   Edad: ' + (p.edad||'—') + ' años   Sexo: ' + (p.sexo||'—'), 36, 46);
+      doc.text('Cedula: ' + (p.cedula||'—') + '   Sangre: ' + (p.sangre||'—') + '   Tel: ' + (p.telefono||'—'), 36, 51);
+
+      // Línea separadora
+      doc.setDrawColor(227, 234, 245);
+      doc.setLineWidth(0.5);
+      doc.line(14, 57, 196, 57);
+
+      // Sección métricas
+      doc.setTextColor(21, 101, 192);
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.text('RESUMEN DE RESULTADOS', 14, 65);
+
+      // Tarjeta BPM
+      doc.setFillColor(255, 235, 238);
+      doc.roundedRect(14, 69, 55, 28, 3, 3, 'F');
+      doc.setTextColor(198, 40, 40);
+      doc.setFontSize(22);
+      doc.setFont('helvetica','bold');
+      doc.text(p.bpm_normal||'—', 41, 83, {align:'center'});
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.text('lpm', 41, 88, {align:'center'});
+      doc.text('Ritmo cardiaco', 41, 93, {align:'center'});
+
+      // Tarjeta SpO2
+      doc.setFillColor(238, 242, 251);
+      doc.roundedRect(77, 69, 55, 28, 3, 3, 'F');
+      doc.setTextColor(21, 101, 192);
+      doc.setFontSize(22);
+      doc.setFont('helvetica','bold');
+      doc.text((p.spo2_min||'—') + '%', 104, 83, {align:'center'});
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.text('SpO2', 104, 88, {align:'center'});
+      doc.text('Oxigeno en sangre', 104, 93, {align:'center'});
+
+      // Tarjeta ECG
+      doc.setFillColor(232, 245, 233);
+      doc.roundedRect(140, 69, 56, 28, 3, 3, 'F');
+      doc.setTextColor(46, 125, 50);
+      doc.setFontSize(13);
+      doc.setFont('helvetica','bold');
+      doc.text('Normal', 168, 83, {align:'center'});
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.text('ECG', 168, 88, {align:'center'});
+      doc.text('Sin anomalias', 168, 93, {align:'center'});
+
+      // Sección datos clínicos
+      doc.setDrawColor(227, 234, 245);
+      doc.line(14, 102, 196, 102);
+      doc.setTextColor(21, 101, 192);
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.text('DATOS CLINICOS', 14, 110);
+
+      doc.setTextColor(26, 41, 64);
+      doc.setFontSize(9);
+      doc.setFont('helvetica','normal');
+      var yPos = 117;
+      var campos = [
+        ['Enfermedades:', p.enfermedades||'Ninguna registrada'],
+        ['Alergias:', p.alergias||'Ninguna registrada'],
+        ['Medicamentos:', p.medicamentos||'Ninguno registrado'],
+        ['Direccion:', p.direccion||'—'],
+        ['Fecha de nacimiento:', p.fecha_nac||'—'],
+        ['Estado:', p.estado||'—']
+      ];
+      campos.forEach(function(c) {
+        doc.setFont('helvetica','bold');
+        doc.setTextColor(100,116,139);
+        doc.text(c[0], 14, yPos);
+        doc.setFont('helvetica','normal');
+        doc.setTextColor(26,41,64);
+        doc.text(c[1], 60, yPos);
+        yPos += 7;
+      });
+
+      // Observaciones
+      doc.setDrawColor(227, 234, 245);
+      doc.line(14, yPos + 2, 196, yPos + 2);
+      doc.setTextColor(21, 101, 192);
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.text('OBSERVACIONES', 14, yPos + 10);
+
+      var obs = '';
+      if (p.enfermedades) obs += 'Enfermedades: ' + p.enfermedades + '. ';
+      if (p.medicamentos) obs += 'Medicamentos: ' + p.medicamentos + '. ';
+      if (p.alergias) obs += 'Alergias: ' + p.alergias + '. ';
+      if (!obs) obs = 'Paciente estable. Continuar con monitoreo rutinario.';
+
+      doc.setFillColor(238, 242, 251);
+      doc.roundedRect(14, yPos + 13, 182, 16, 3, 3, 'F');
+      doc.setTextColor(26, 41, 64);
+      doc.setFontSize(9);
+      doc.setFont('helvetica','normal');
+      var obsLineas = doc.splitTextToSize(obs, 174);
+      doc.text(obsLineas, 17, yPos + 20);
+
+      // Pie de página
+      doc.setDrawColor(21, 101, 192);
+      doc.setLineWidth(0.8);
+      doc.line(14, 275, 196, 275);
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.text('Pagina 1 de 1  ·  Hospital Dr. Jose Gregorio Hernandez  ·  Edo. Trujillo', 105, 281, {align:'center'});
+
+      // Enviar a App Inventor como base64
+      var pdfBase64 = doc.output('datauristring');
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString('PDF_BASE64:' + (p.nombre||'paciente').replace(/ /g,'_') + ':' + pdfBase64);
+      } else {
+        // En el navegador, descargar directamente
+        doc.save('Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf');
+      }
+    } catch(err) {
+      alert('Error al generar PDF: ' + err.message);
+    }
+  }
+</script>
+</body>
+</html>
