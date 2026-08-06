@@ -814,17 +814,14 @@
       doc.setFont('helvetica','normal');
       doc.text('Pagina 1 de 1  ·  Hospital Dr. Jose Gregorio Hernandez  ·  Edo. Trujillo', 105, 281, {align:'center'});
 
-      // Descargar PDF directamente (funciona en App Inventor WebViewer y en navegador)
+      // Enviar PDF a App Inventor como base64
       var nombreArchivo = 'Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf';
-      var pdfBlob = doc.output('blob');
-      var url = URL.createObjectURL(pdfBlob);
-      var enlace = document.createElement('a');
-      enlace.href = url;
-      enlace.download = nombreArchivo;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+      var pdfBase64 = doc.output('datauristring');
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString('PDF_BASE64:' + nombreArchivo + ':' + pdfBase64);
+      } else {
+        doc.save(nombreArchivo);
+      }
     } catch(err) {
       alert('Error al generar PDF: ' + err.message);
     }
