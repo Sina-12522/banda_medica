@@ -204,12 +204,6 @@
     </div>
   </div>
 
-  <div class="tabs-filtro">
-    <button class="tab-filtro activo" onclick="filtrarTipo('todos', this)">Todos</button>
-    <button class="tab-filtro" onclick="filtrarTipo('completo', this)">Reporte completo</button>
-    <button class="tab-filtro" onclick="filtrarTipo('bpm', this)">Ritmo cardíaco</button>
-    <button class="tab-filtro" onclick="filtrarTipo('spo2', this)">Oxígeno</button>
-  </div>
 
   <div>
     <div class="seccion-titulo">Pacientes registrados</div>
@@ -442,7 +436,8 @@
 </div>
 
 <script>
-  var pacientes = [];
+  var pacientes = [
+  ];
   var pacienteActual = null;
   var filtroActual = 'todos';
   var chartBPM = null;
@@ -514,7 +509,14 @@
     filtroActual = tipo;
     document.querySelectorAll('.tab-filtro').forEach(function(b){ b.classList.remove('activo'); });
     btn.classList.add('activo');
-    renderizarLista(pacientes);
+    var filtrados = pacientes.filter(function(p) {
+      if (tipo === 'todos') return true;
+      if (tipo === 'bpm') return p.bpm_normal && p.bpm_normal !== '';
+      if (tipo === 'spo2') return p.spo2_min && p.spo2_min !== '';
+      if (tipo === 'completo') return p.nombre && p.cedula && p.edad && p.bpm_normal && p.spo2_min;
+      return true;
+    });
+    renderizarLista(filtrados);
   }
 
   function abrirDetalle(idx) {
@@ -812,14 +814,17 @@
       doc.setFont('helvetica','normal');
       doc.text('Pagina 1 de 1  ·  Hospital Dr. Jose Gregorio Hernandez  ·  Edo. Trujillo', 105, 281, {align:'center'});
 
-      // Enviar a App Inventor como base64
-      var pdfBase64 = doc.output('datauristring');
-      if (window.AppInventor) {
-        window.AppInventor.setWebViewString('PDF_BASE64:' + (p.nombre||'paciente').replace(/ /g,'_') + ':' + pdfBase64);
-      } else {
-        // En el navegador, descargar directamente
-        doc.save('Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf');
-      }
+      // Descargar PDF directamente (funciona en App Inventor WebViewer y en navegador)
+      var nombreArchivo = 'Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf';
+      var pdfBlob = doc.output('blob');
+      var url = URL.createObjectURL(pdfBlob);
+      var enlace = document.createElement('a');
+      enlace.href = url;
+      enlace.download = nombreArchivo;
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
     } catch(err) {
       alert('Error al generar PDF: ' + err.message);
     }
