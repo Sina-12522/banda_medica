@@ -204,7 +204,6 @@
     </div>
   </div>
 
-
   <div>
     <div class="seccion-titulo">Pacientes registrados</div>
     <div id="listaReportes">
@@ -436,8 +435,7 @@
 </div>
 
 <script>
-  var pacientes = [
-  ];
+  var pacientes = [];
   var pacienteActual = null;
   var filtroActual = 'todos';
   var chartBPM = null;
@@ -501,20 +499,6 @@
     var filtrados = pacientes.filter(function(p) {
       return (p.nombre||'').toLowerCase().includes(texto.toLowerCase()) ||
              (p.cedula||'').toLowerCase().includes(texto.toLowerCase());
-    });
-    renderizarLista(filtrados);
-  }
-
-  function filtrarTipo(tipo, btn) {
-    filtroActual = tipo;
-    document.querySelectorAll('.tab-filtro').forEach(function(b){ b.classList.remove('activo'); });
-    btn.classList.add('activo');
-    var filtrados = pacientes.filter(function(p) {
-      if (tipo === 'todos') return true;
-      if (tipo === 'bpm') return p.bpm_normal && p.bpm_normal !== '';
-      if (tipo === 'spo2') return p.spo2_min && p.spo2_min !== '';
-      if (tipo === 'completo') return p.nombre && p.cedula && p.edad && p.bpm_normal && p.spo2_min;
-      return true;
     });
     renderizarLista(filtrados);
   }
@@ -670,7 +654,6 @@
     if (!pacienteActual) return;
     var p = pacienteActual;
 
-    // Primero mostrar la vista previa si no está abierta
     if (!document.getElementById('modalPDF').classList.contains('activo')) {
       verPreviewPDF();
       setTimeout(function(){ generarYDescargarPDF(p); }, 600);
@@ -679,22 +662,24 @@
     }
   }
 
+  // --- FUNCIÓN DE DESCARGA ADAPTADA PARA APP INVENTOR ---
   function generarYDescargarPDF(p) {
     try {
-      var nombreArchivo = 'Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf';
       var elemento = document.getElementById('pdfPaper');
 
       var opciones = {
         margin: [5, 5, 5, 5],
-        filename: nombreArchivo,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opciones).from(elemento).save().then(function() {
+      // Generación de cadena Uri/Base64 compatible con App Inventor
+      html2pdf().set(opciones).from(elemento).outputPdf('datauristring').then(function(pdfBase64) {
         if (window.AppInventor) {
-          window.AppInventor.setWebViewString('PDF_DESCARGADO:' + nombreArchivo);
+          window.AppInventor.setWebViewString('PDF_BASE64:' + pdfBase64);
+        } else {
+          alert('PDF generado de forma exitosa (Modo de prueba fuera de App Inventor)');
         }
       }).catch(function(err) {
         alert('Error al generar PDF: ' + err.message);
