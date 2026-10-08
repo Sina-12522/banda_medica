@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Reportes - Hospital Dr. José Gregorio Hernández</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root {
     --azul: #1565C0;
@@ -670,158 +670,36 @@
     if (!pacienteActual) return;
     var p = pacienteActual;
 
+    // Primero mostrar la vista previa si no está abierta
+    if (!document.getElementById('modalPDF').classList.contains('activo')) {
+      verPreviewPDF();
+      setTimeout(function(){ generarYDescargarPDF(p); }, 600);
+    } else {
+      generarYDescargarPDF(p);
+    }
+  }
+
+  function generarYDescargarPDF(p) {
     try {
-      var doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      var fecha = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit'});
+      var nombreArchivo = 'Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf';
+      var elemento = document.getElementById('pdfPaper');
 
-      // Encabezado
-      doc.setFillColor(21, 101, 192);
-      doc.rect(0, 0, 210, 28, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Hospital Dr. Jose Gregorio Hernandez', 14, 12);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Reporte Medico - Edo. Trujillo', 14, 19);
-      doc.text('Fecha: ' + fecha, 140, 19);
+      var opciones = {
+        margin: [5, 5, 5, 5],
+        filename: nombreArchivo,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
 
-      // Avatar iniciales
-      var iniciales = (p.nombre||'?').split(' ').slice(0,2).map(function(n){ return n[0]||''; }).join('').toUpperCase();
-      doc.setFillColor(21, 101, 192);
-      doc.roundedRect(14, 34, 18, 18, 3, 3, 'F');
-      doc.setTextColor(255,255,255);
-      doc.setFontSize(12);
-      doc.setFont('helvetica','bold');
-      doc.text(iniciales, 23, 45, {align:'center'});
-
-      // Datos paciente
-      doc.setTextColor(26, 41, 64);
-      doc.setFontSize(13);
-      doc.setFont('helvetica','bold');
-      doc.text(p.nombre||'—', 36, 40);
-      doc.setFontSize(9);
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(100, 116, 139);
-      doc.text('ID: ' + (p.id||'—') + '   Edad: ' + (p.edad||'—') + ' años   Sexo: ' + (p.sexo||'—'), 36, 46);
-      doc.text('Cedula: ' + (p.cedula||'—') + '   Sangre: ' + (p.sangre||'—') + '   Tel: ' + (p.telefono||'—'), 36, 51);
-
-      // Línea separadora
-      doc.setDrawColor(227, 234, 245);
-      doc.setLineWidth(0.5);
-      doc.line(14, 57, 196, 57);
-
-      // Sección métricas
-      doc.setTextColor(21, 101, 192);
-      doc.setFontSize(10);
-      doc.setFont('helvetica','bold');
-      doc.text('RESUMEN DE RESULTADOS', 14, 65);
-
-      // Tarjeta BPM
-      doc.setFillColor(255, 235, 238);
-      doc.roundedRect(14, 69, 55, 28, 3, 3, 'F');
-      doc.setTextColor(198, 40, 40);
-      doc.setFontSize(22);
-      doc.setFont('helvetica','bold');
-      doc.text(p.bpm_normal||'—', 41, 83, {align:'center'});
-      doc.setFontSize(8);
-      doc.setFont('helvetica','normal');
-      doc.text('lpm', 41, 88, {align:'center'});
-      doc.text('Ritmo cardiaco', 41, 93, {align:'center'});
-
-      // Tarjeta SpO2
-      doc.setFillColor(238, 242, 251);
-      doc.roundedRect(77, 69, 55, 28, 3, 3, 'F');
-      doc.setTextColor(21, 101, 192);
-      doc.setFontSize(22);
-      doc.setFont('helvetica','bold');
-      doc.text((p.spo2_min||'—') + '%', 104, 83, {align:'center'});
-      doc.setFontSize(8);
-      doc.setFont('helvetica','normal');
-      doc.text('SpO2', 104, 88, {align:'center'});
-      doc.text('Oxigeno en sangre', 104, 93, {align:'center'});
-
-      // Tarjeta ECG
-      doc.setFillColor(232, 245, 233);
-      doc.roundedRect(140, 69, 56, 28, 3, 3, 'F');
-      doc.setTextColor(46, 125, 50);
-      doc.setFontSize(13);
-      doc.setFont('helvetica','bold');
-      doc.text('Normal', 168, 83, {align:'center'});
-      doc.setFontSize(8);
-      doc.setFont('helvetica','normal');
-      doc.text('ECG', 168, 88, {align:'center'});
-      doc.text('Sin anomalias', 168, 93, {align:'center'});
-
-      // Sección datos clínicos
-      doc.setDrawColor(227, 234, 245);
-      doc.line(14, 102, 196, 102);
-      doc.setTextColor(21, 101, 192);
-      doc.setFontSize(10);
-      doc.setFont('helvetica','bold');
-      doc.text('DATOS CLINICOS', 14, 110);
-
-      doc.setTextColor(26, 41, 64);
-      doc.setFontSize(9);
-      doc.setFont('helvetica','normal');
-      var yPos = 117;
-      var campos = [
-        ['Enfermedades:', p.enfermedades||'Ninguna registrada'],
-        ['Alergias:', p.alergias||'Ninguna registrada'],
-        ['Medicamentos:', p.medicamentos||'Ninguno registrado'],
-        ['Direccion:', p.direccion||'—'],
-        ['Fecha de nacimiento:', p.fecha_nac||'—'],
-        ['Estado:', p.estado||'—']
-      ];
-      campos.forEach(function(c) {
-        doc.setFont('helvetica','bold');
-        doc.setTextColor(100,116,139);
-        doc.text(c[0], 14, yPos);
-        doc.setFont('helvetica','normal');
-        doc.setTextColor(26,41,64);
-        doc.text(c[1], 60, yPos);
-        yPos += 7;
+      html2pdf().set(opciones).from(elemento).save().then(function() {
+        if (window.AppInventor) {
+          window.AppInventor.setWebViewString('PDF_DESCARGADO:' + nombreArchivo);
+        }
+      }).catch(function(err) {
+        alert('Error al generar PDF: ' + err.message);
       });
 
-      // Observaciones
-      doc.setDrawColor(227, 234, 245);
-      doc.line(14, yPos + 2, 196, yPos + 2);
-      doc.setTextColor(21, 101, 192);
-      doc.setFontSize(10);
-      doc.setFont('helvetica','bold');
-      doc.text('OBSERVACIONES', 14, yPos + 10);
-
-      var obs = '';
-      if (p.enfermedades) obs += 'Enfermedades: ' + p.enfermedades + '. ';
-      if (p.medicamentos) obs += 'Medicamentos: ' + p.medicamentos + '. ';
-      if (p.alergias) obs += 'Alergias: ' + p.alergias + '. ';
-      if (!obs) obs = 'Paciente estable. Continuar con monitoreo rutinario.';
-
-      doc.setFillColor(238, 242, 251);
-      doc.roundedRect(14, yPos + 13, 182, 16, 3, 3, 'F');
-      doc.setTextColor(26, 41, 64);
-      doc.setFontSize(9);
-      doc.setFont('helvetica','normal');
-      var obsLineas = doc.splitTextToSize(obs, 174);
-      doc.text(obsLineas, 17, yPos + 20);
-
-      // Pie de página
-      doc.setDrawColor(21, 101, 192);
-      doc.setLineWidth(0.8);
-      doc.line(14, 275, 196, 275);
-      doc.setTextColor(100, 116, 139);
-      doc.setFontSize(8);
-      doc.setFont('helvetica','normal');
-      doc.text('Pagina 1 de 1  ·  Hospital Dr. Jose Gregorio Hernandez  ·  Edo. Trujillo', 105, 281, {align:'center'});
-
-      // Enviar PDF a App Inventor
-      var nombreArchivo = 'Reporte_' + (p.nombre||'paciente').replace(/ /g,'_') + '.pdf';
-      var pdfBase64 = doc.output('datauristring');
-      if (window.AppInventor) {
-        window.AppInventor.setWebViewString('PDF_BASE64:' + nombreArchivo + ':' + pdfBase64);
-      } else {
-        doc.save(nombreArchivo);
-      }
     } catch(err) {
       alert('Error al generar PDF: ' + err.message);
     }
