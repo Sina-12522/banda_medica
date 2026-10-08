@@ -494,10 +494,9 @@
     }
   }
 
-  function cargarPacientesGuardados(datos) {
   var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx59Yccneq6MCm8MoPeUbgWaGgobOrHk3aBdz7q0fuPt_j6st-xUyAVl_ZmLW2GrKmeTw/exec";
 
-function cargarDesdNube() {
+  function cargarDesdeNube() {
     fetch(SCRIPT_URL + "?accion=GET_PACIENTES")
       .then(function(r){ return r.json(); })
       .then(function(lista) {
@@ -513,7 +512,7 @@ function cargarDesdNube() {
       .catch(function(e){ console.error("Error nube:", e); });
   }
 
-function cargarPacientesGuardados(datos) {
+  function cargarPacientesGuardados(datos) {
     try {
       if (datos && datos !== "[]" && datos !== "") {
         var json = datos.replace("GUARDAR_PACIENTE:", "");
@@ -524,13 +523,13 @@ function cargarPacientesGuardados(datos) {
           actualizarStats();
         }
       } else {
-        cargarDesdNube();
+        cargarDesdeNube();
       }
-    } catch(e) { 
+    } catch(e) {
       console.error("Error cargando:", e);
-      cargarDesdNube();
+      cargarDesdeNube();
     }
-}
+  }
 
   function toggleFiltro() {
     document.getElementById("filtroPanel").classList.toggle("activo");
