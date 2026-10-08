@@ -662,31 +662,33 @@
     }
   }
 
-  // --- FUNCIÓN DE DESCARGA ADAPTADA PARA APP INVENTOR ---
+  // --- FUNCIÓN DE DESCARGA ADAPTADA Y CORREGIDA PARA APP INVENTOR ---
   function generarYDescargarPDF(p) {
     try {
       var elemento = document.getElementById('pdfPaper');
 
       var opciones = {
         margin: [5, 5, 5, 5],
+        filename: 'Reporte_' + (p.nombre || 'paciente').replace(/\s+/g, '_') + '.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      // Generación de cadena Uri/Base64 compatible con App Inventor
-      html2pdf().set(opciones).from(elemento).outputPdf('datauristring').then(function(pdfBase64) {
+      // Se utiliza .output('datauristring') estándar de html2pdf
+      html2pdf().set(opciones).from(elemento).output('datauristring').then(function(pdfBase64) {
         if (window.AppInventor) {
-          window.AppInventor.setWebViewString('PDF_BASE64:' + pdfBase64);
+          // Se envía con la coma para que el bloque "recorta texto" corte perfectamente
+          window.AppInventor.setWebViewString('PDF_BASE64,' + pdfBase64);
         } else {
-          alert('PDF generado de forma exitosa (Modo de prueba fuera de App Inventor)');
+          alert('PDF generado exitosamente (Modo de prueba web)');
         }
       }).catch(function(err) {
-        alert('Error al generar PDF: ' + err.message);
+        alert('Error al generar PDF: ' + err);
       });
 
     } catch(err) {
-      alert('Error al generar PDF: ' + err.message);
+      alert('Error al procesar el PDF: ' + err);
     }
   }
 </script>
