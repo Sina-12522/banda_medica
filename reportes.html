@@ -112,10 +112,23 @@
   .metrica-label { font-size: 9px; color: var(--gris); margin-top: 4px; }
   .metrica-rango { font-size: 9px; color: var(--gris); margin-top: 2px; }
 
-  .grafica-card { background: var(--blanco); border-radius: 14px; padding: 14px; border: 1px solid var(--borde); }
+  /* ESTILOS CORREGIDOS PARA FRENAR EL BUCLE DE REDIMENSIONAMIENTO */
+  .grafica-card { 
+    background: var(--blanco); 
+    border-radius: 14px; 
+    padding: 14px; 
+    border: 1px solid var(--borde); 
+    height: 220px; 
+    position: relative; 
+    overflow: hidden; 
+  }
   .grafica-titulo { font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
   .grafica-titulo svg { width: 16px; height: 16px; }
-  .grafica-canvas { width: 100%; height: 160px; }
+  .grafica-canvas { 
+    width: 100% !important; 
+    height: 160px !important; 
+    max-height: 160px !important; 
+  }
 
   .dispositivo-card { background: var(--blanco); border-radius: 14px; padding: 14px; border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; }
   .dispositivo-icono { width: 44px; height: 44px; background: var(--azul-fondo); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
@@ -549,6 +562,7 @@
     return datos;
   }
 
+  /* FUNCIÓN DIBUJAR GRÁFICAS CORREGIDA */
   function dibujarGraficas(p) {
     var horas = ['8am','9am','10am','11am','12pm','1pm','2pm','3pm'];
     var bpmBase = parseInt(p.bpm_normal) || 75;
@@ -559,6 +573,8 @@
     var optComun = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false, /* Evita animaciones continuas en WebView */
+      resizeDelay: 200,
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 } } },
@@ -567,18 +583,18 @@
       elements: { point: { radius: 3 }, line: { tension: 0.4 } }
     };
 
-    if (chartBPM) chartBPM.destroy();
+    if (chartBPM) { chartBPM.destroy(); chartBPM = null; }
     chartBPM = new Chart(document.getElementById('graficaBPM'), {
       type: 'line',
       data: { labels: horas, datasets: [{ data: datosBPM, borderColor: '#C62828', backgroundColor: 'rgba(198,40,40,0.08)', fill: true, borderWidth: 2 }] },
-      options: JSON.parse(JSON.stringify(optComun))
+      options: optComun
     });
 
-    if (chartSPO2) chartSPO2.destroy();
+    if (chartSPO2) { chartSPO2.destroy(); chartSPO2 = null; }
     chartSPO2 = new Chart(document.getElementById('graficaSPO2'), {
       type: 'line',
       data: { labels: horas, datasets: [{ data: datosSPO2, borderColor: '#1565C0', backgroundColor: 'rgba(21,101,192,0.08)', fill: true, borderWidth: 2 }] },
-      options: JSON.parse(JSON.stringify(optComun))
+      options: optComun
     });
   }
 
@@ -677,8 +693,6 @@
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // En lugar de enviar una cadena Base64, ejecutamos .save()
-        // Esto dispara la descarga nativa en el navegador/WebViewExtra de Android
         html2pdf().set(opciones).from(elemento).save();
 
       }, 500);
