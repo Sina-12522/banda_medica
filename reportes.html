@@ -656,13 +656,11 @@
     generarYDescargarPDF(p);
   }
 
-  // --- FUNCIÓN DE DESCARGA ADAPTADA Y CORREGIDA PARA APP INVENTOR ---
+  // --- FUNCIÓN ADAPTADA PARA DESCARGA NATIVA CON WEBVIEWEXTRA ---
   function generarYDescargarPDF(p) {
     try {
-      // 1. Asegurar que el modal esté visible antes de capturar el DOM
       verPreviewPDF();
 
-      // 2. Esperar 500ms para asegurar el renderizado de gráficos en Android
       setTimeout(function() {
         var elemento = document.getElementById('pdfPaper');
 
@@ -679,15 +677,10 @@
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opciones).from(elemento).output('datauristring').then(function(pdfBase64) {
-          if (window.AppInventor) {
-            window.AppInventor.setWebViewString('PDF_BASE64,' + pdfBase64);
-          } else {
-            alert('PDF generado exitosamente (Modo de prueba web)');
-          }
-        }).catch(function(err) {
-          alert('Error al generar PDF: ' + err);
-        });
+        // En lugar de enviar una cadena Base64, ejecutamos .save()
+        // Esto dispara la descarga nativa en el navegador/WebViewExtra de Android
+        html2pdf().set(opciones).from(elemento).save();
+
       }, 500);
 
     } catch(err) {
