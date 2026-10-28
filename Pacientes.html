@@ -60,11 +60,8 @@
   .filtro-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--borde); font-size: 12px; font-weight: 600; cursor: pointer; background: var(--blanco); color: var(--texto); }
   .filtro-btn.activo-filtro { border-color: var(--azul); background: var(--azul-fondo); color: var(--azul); }
   .filtro-btn.rojo { border-color: var(--rojo); background: var(--rojo-claro); color: var(--rojo); }
-  .filtro-btn.rojo.activo-filtro { background: var(--rojo); color: white; }
   .filtro-btn.amarillo { border-color: var(--amarillo); background: var(--amarillo-claro); color: var(--amarillo); }
-  .filtro-btn.amarillo.activo-filtro { background: var(--amarillo); color: white; }
   .filtro-btn.verde { border-color: var(--verde); background: var(--verde-claro); color: var(--verde); }
-  .filtro-btn.verde.activo-filtro { background: var(--verde); color: white; }
 
   .seccion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .seccion-titulo { font-size: 14px; font-weight: 700; }
@@ -208,7 +205,7 @@
       <button class="filtro-btn activo-filtro" onclick="aplicarFiltro('todos', this)">Todos</button>
       <button class="filtro-btn verde" onclick="aplicarFiltro('Estable', this)">● Estables</button>
       <button class="filtro-btn amarillo" onclick="aplicarFiltro('Observación', this)">● Observación</button>
-      <button class="filtro-btn rojo" onclick="aplicarFiltro('Alerta', this)">● Alertas</button>
+      <button class="filtro-btn rojo" onclick="aplicarFiltro('Alerta', this)">● Alertas / Críticos</button>
     </div>
     <div class="filtro-titulo" style="margin-top:4px;">ORDENAR POR</div>
     <div class="filtro-opciones">
@@ -320,6 +317,14 @@
             <option value="Dr. Benito Díaz">Dr. Benito Díaz - Jefe de Emergencias</option>
           </select>
         </div>
+        <div class="form-grupo">
+          <label class="form-label">Estado clínico inicial</label>
+          <select class="form-select" id="p_estado">
+            <option value="Estable">Estable</option>
+            <option value="Observación">Observación</option>
+            <option value="Alerta">Alerta / Crítico</option>
+          </select>
+        </div>
       </div>
       <button class="btn-guardar" onclick="cambiarTab(3)">Siguiente <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
@@ -411,41 +416,47 @@
   var pacienteViendoIdx = -1;
   var coloresAvatar = ["#1565C0","#2E7D32","#6A1B9A","#E65100","#00695C","#AD1457"];
 
+  // URL EXACTA DE TU GOOGLE APPS SCRIPT
+  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx59Yccneq6MCm8MoPeUbgWaGgobOrHk3aBdz7q0fuPt_j6st-xUyAVl_ZmLW2GrKmeTw/exec";
+
   window.onload = function() {
-    poblarSelectDoctores();
-    cargarPacientesLocales();
     actualizarStats();
     cargarDesdeNube();
   };
 
-  // Cargar lista de doctores en el select dinámicamente
-  function poblarSelectDoctores() {
-    var select = document.getElementById("p_medico");
-    if (!select) return;
-
-    var listaDoctores = [
-      "Dr. Benito Díaz - Jefe de Emergencias",
-      "Dra. Carmen Rivas - Cardiología",
-      "Dr. Carlos Pérez - Medicina Interna",
-      "Dra. Ana Sofía Silva - Pediatría",
-      "Dr. José Gregorio Mendoza - Cirugía"
-    ];
-
-    try {
-      var savedDocs = localStorage.getItem("hospital_doctores");
-      if (savedDocs) {
-        var parsed = JSON.parse(savedDocs);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          listaDoctores = parsed;
+  function cargarDesdeNube() {
+    fetch(SCRIPT_URL + "?accion=GET_PACIENTES")
+      .then(function(r){ return r.json(); })
+      .then(function(lista) {
+        if (Array.isArray(lista) && lista.length > 0) {
+          pacientes = lista;
+          aplicarFiltroYOrden();
+          actualizarStats();
+          if (window.AppInventor) {
+            window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(pacientes));
+          }
         }
-      }
-    } catch(e) {}
+      })
+      .catch(function(e){ console.error("Error cargando desde Google Sheets:", e); });
+  }
 
-    var htmlOpts = "";
-    for (var i = 0; i < listaDoctores.length; i++) {
-      htmlOpts += '<option value="' + listaDoctores[i] + '">' + listaDoctores[i] + '</option>';
+  function cargarPacientesGuardados(datos) {
+    try {
+      if (datos && datos !== "[]" && datos !== "") {
+        var json = datos.replace("GUARDAR_PACIENTE:", "");
+        var lista = JSON.parse(json);
+        if (Array.isArray(lista)) {
+          pacientes = lista;
+          aplicarFiltroYOrden();
+          actualizarStats();
+        }
+      } else {
+        cargarDesdeNube();
+      }
+    } catch(e) {
+      console.error("Error al procesar datos:", e);
+      cargarDesdeNube();
     }
-    select.innerHTML = htmlOpts;
   }
 
   function renderizarLista(lista) {
@@ -453,7 +464,7 @@
     if (!contenedor) return;
 
     if (!lista || lista.length === 0) {
-      contenedor.innerHTML = '<div class="lista-vacia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><p>No hay pacientes que coincidan.<br>Prueba con otro filtro o término de búsqueda.</p></div>';
+      contenedor.innerHTML = '<div class="lista-vacia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><p>No hay pacientes registrados.<br>Registra el primero usando el botón de abajo.</p></div>';
       return;
     }
 
@@ -461,7 +472,6 @@
     for (var j = 0; j < lista.length; j++) {
       var p = lista[j];
       
-      // Búsqueda de índice real compatible con ES5
       var realIdx = -1;
       for (var k = 0; k < pacientes.length; k++) {
         if (pacientes[k].cedula === p.cedula || pacientes[k].id === p.id) {
@@ -473,17 +483,18 @@
 
       var iniciales = p.nombre ? p.nombre.split(" ").slice(0,2).map(function(n){ return n[0]; }).join("") : "P";
       var color = p.color || "#1565C0";
-      var claseBadge = p.estado === "Alerta" ? "estado-alerta" : p.estado === "Observación" ? "estado-observacion" : "estado-estable";
+      var est = p.estado || "Estable";
+      var claseBadge = est === "Alerta" ? "estado-alerta" : est === "Observación" ? "estado-observacion" : "estado-estable";
 
       html += '<div class="paciente-card">' +
                 '<div class="avatar" style="background:' + color + '">' + iniciales + '</div>' +
                 '<div class="paciente-info">' +
                   '<div class="paciente-nombre">' + p.nombre + '</div>' +
-                  '<div class="paciente-sub">' + (p.id || "P10024") + ' · Cédula: ' + (p.cedula || "Sin cédula") + ' · <b>Dr(a). ' + (p.medico || "Dr. Benito Díaz") + '</b></div>' +
+                  '<div class="paciente-sub">' + (p.id || "P10024") + ' · ' + (p.cedula || "Sin cédula") + '</div>' +
                   '<div class="paciente-vitales">' +
                     '<span class="vital bpm">♥ ' + (p.bpm_actual || "--") + ' BPM</span>' +
                     '<span class="vital spo2">O₂ ' + (p.spo2_actual || "--") + '%</span>' +
-                    '<span class="estado-badge ' + claseBadge + '">' + (p.estado || "Estable") + '</span>' +
+                    '<span class="estado-badge ' + claseBadge + '">' + est + '</span>' +
                   '</div>' +
                   '<div class="paciente-acciones">' +
                     '<button class="btn-accion ver" onclick="verPacienteDetalle(' + realIdx + ')">Ver</button>' +
@@ -506,7 +517,6 @@
     document.getElementById("modalTitulo").textContent = "Nuevo Paciente";
     document.getElementById("modalSub").textContent = "Registrar información médica";
     limpiarForm();
-    poblarSelectDoctores();
     cambiarTab(1);
     document.getElementById("modalRegistro").classList.add("activo");
   }
@@ -517,10 +527,10 @@
 
   function cambiarTab(num) {
     for (var i = 1; i <= 3; i++) {
-      var tabBtn = document.getElementById("tab" + i);
-      var tabCont = document.getElementById("contenido-tab" + i);
-      if (tabBtn) tabBtn.classList.remove("active");
-      if (tabCont) tabCont.style.display = "none";
+      var btn = document.getElementById("tab" + i);
+      var cont = document.getElementById("contenido-tab" + i);
+      if (btn) btn.classList.remove("active");
+      if (cont) cont.style.display = "none";
     }
     var activeBtn = document.getElementById("tab" + num);
     var activeCont = document.getElementById("contenido-tab" + num);
@@ -538,19 +548,17 @@
     }
     document.getElementById("p_sexo").value = "";
     document.getElementById("p_sangre").value = "";
+    document.getElementById("p_estado").value = "Estable";
   }
 
   function guardarPaciente() {
-    var nombreEl = document.getElementById("p_nombre");
-    var cedulaEl = document.getElementById("p_cedula");
-    
-    var nombre = nombreEl ? nombreEl.value.trim() : "";
+    var nombre = document.getElementById("p_nombre").value.trim();
     if (!nombre) { mostrarToast("⚠️ El nombre es obligatorio"); cambiarTab(1); return; }
     
-    var cedula = cedulaEl ? cedulaEl.value.trim() : "";
+    var cedula = document.getElementById("p_cedula").value.trim();
     if (!cedula) { mostrarToast("⚠️ La cédula es obligatoria"); cambiarTab(1); return; }
 
-    // VALIDACIÓN DE CÉDULA DUPLICADA (ES5 seguro)
+    // VALIDACIÓN DE CÉDULA DUPLICADA
     var cedulaLimpia = cedula.toLowerCase().replace(/[^0-9kK]/g, "");
     var duplicado = null;
     for (var i = 0; i < pacientes.length; i++) {
@@ -563,7 +571,7 @@
     }
 
     if (duplicado) {
-      mostrarToast("⚠️ La cédula ya pertenece a " + duplicado.nombre);
+      mostrarToast("⚠️ Esta cédula ya pertenece a " + duplicado.nombre);
       cambiarTab(1);
       return;
     }
@@ -581,6 +589,7 @@
       bpm_max: document.getElementById("p_bpm_max").value || "100",
       spo2_min: document.getElementById("p_spo2_min").value || "95",
       medico: document.getElementById("p_medico").value,
+      estado: document.getElementById("p_estado").value,
       sangre: document.getElementById("p_sangre").value,
       alergias: document.getElementById("p_alergias").value,
       enfermedades: document.getElementById("p_enfermedades").value,
@@ -596,80 +605,19 @@
       datos.id = "P" + (10024 + pacientes.length);
       datos.bpm_actual = "--";
       datos.spo2_actual = "--";
-      datos.estado = "Estable";
       datos.fecha_registro = new Date().toLocaleDateString("es-VE");
       datos.color = coloresAvatar[pacientes.length % coloresAvatar.length];
       pacientes.push(datos);
       mostrarToast("✅ Paciente registrado correctamente");
     }
 
-    // Guardar localmente y aplicar filtros
-    guardarPacientesLocales();
     aplicarFiltroYOrden();
     actualizarStats();
     cerrarModal();
 
+    // Sincronizar hacia App Inventor y Google Sheets
     if (window.AppInventor) {
       window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(pacientes));
-    }
-  }
-
-  function guardarPacientesLocales() {
-    try {
-      localStorage.setItem("hospital_pacientes", JSON.stringify(pacientes));
-    } catch(e) {}
-  }
-
-  function cargarPacientesLocales() {
-    try {
-      var saved = localStorage.getItem("hospital_pacientes");
-      if (saved) {
-        var lista = JSON.parse(saved);
-        if (Array.isArray(lista) && lista.length > 0) {
-          pacientes = lista;
-          aplicarFiltroYOrden();
-          actualizarStats();
-        }
-      }
-    } catch(e) {}
-  }
-
-  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx59Yccneq6MCm8MoPeUbgWaGgobOrHk3aBdz7q0fuPt_j6st-xUyAVl_ZmLW2GrKmeTw/exec";
-
-  function cargarDesdeNube() {
-    fetch(SCRIPT_URL + "?accion=GET_PACIENTES")
-      .then(function(r){ return r.json(); })
-      .then(function(lista) {
-        if (Array.isArray(lista) && lista.length > 0) {
-          pacientes = lista;
-          guardarPacientesLocales();
-          aplicarFiltroYOrden();
-          actualizarStats();
-          if (window.AppInventor) {
-            window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(pacientes));
-          }
-        }
-      })
-      .catch(function(e){ console.error("Error nube:", e); });
-  }
-
-  function cargarPacientesGuardados(datos) {
-    try {
-      if (datos && datos !== "[]" && datos !== "") {
-        var json = datos.replace("GUARDAR_PACIENTE:", "");
-        var lista = JSON.parse(json);
-        if (Array.isArray(lista)) {
-          pacientes = lista;
-          guardarPacientesLocales();
-          aplicarFiltroYOrden();
-          actualizarStats();
-        }
-      } else {
-        cargarDesdeNube();
-      }
-    } catch(e) {
-      console.error("Error cargando:", e);
-      cargarDesdeNube();
     }
   }
 
@@ -709,10 +657,10 @@
       var filtradosTemp = [];
       for (var i = 0; i < resultado.length; i++) {
         var p = resultado[i];
-        var coincideNom = p.nombre && p.nombre.toLowerCase().indexOf(textoBusqueda) !== -1;
-        var coincideCed = p.cedula && p.cedula.toLowerCase().indexOf(textoBusqueda) !== -1;
-        var coincideId = p.id && p.id.toLowerCase().indexOf(textoBusqueda) !== -1;
-        if (coincideNom || coincideCed || coincideId) {
+        var matchNom = p.nombre && p.nombre.toLowerCase().indexOf(textoBusqueda) !== -1;
+        var matchCed = p.cedula && p.cedula.toLowerCase().indexOf(textoBusqueda) !== -1;
+        var matchId = p.id && p.id.toLowerCase().indexOf(textoBusqueda) !== -1;
+        if (matchNom || matchCed || matchId) {
           filtradosTemp.push(p);
         }
       }
@@ -721,10 +669,10 @@
 
     if (filtroActual !== "todos") {
       var filtradosEstado = [];
-      for (var i = 0; i < resultado.length; i++) {
-        var est = resultado[i].estado || "Estable";
+      for (var j = 0; j < resultado.length; j++) {
+        var est = resultado[j].estado || "Estable";
         if (est === filtroActual) {
-          filtradosEstado.push(resultado[i]);
+          filtradosEstado.push(resultado[j]);
         }
       }
       resultado = filtradosEstado;
@@ -748,12 +696,13 @@
     var p = pacientes[idx];
     if (!p) return;
     var iniciales = p.nombre ? p.nombre.split(" ").slice(0,2).map(function(n){ return n[0]; }).join("") : "P";
-    var claseBadge = p.estado === "Alerta" ? "estado-alerta" : p.estado === "Observación" ? "estado-observacion" : "estado-estable";
+    var est = p.estado || "Estable";
+    var claseBadge = est === "Alerta" ? "estado-alerta" : est === "Observación" ? "estado-observacion" : "estado-estable";
     document.getElementById("ver-avatar").textContent = iniciales;
     document.getElementById("ver-avatar").style.background = p.color || "#1565C0";
     document.getElementById("ver-nombre").textContent = p.nombre;
     document.getElementById("ver-id").textContent = (p.id || "P10024") + " · Registrado: " + (p.fecha_registro || "--");
-    document.getElementById("ver-estado-badge").innerHTML = '<span class="estado-badge ' + claseBadge + '">' + (p.estado || "Estable") + '</span>';
+    document.getElementById("ver-estado-badge").innerHTML = '<span class="estado-badge ' + claseBadge + '">' + est + '</span>';
     document.getElementById("ver-cedula").textContent = p.cedula || "No registrado";
     document.getElementById("ver-edad").textContent = p.edad ? p.edad + " años" : "No registrado";
     document.getElementById("ver-sexo").textContent = p.sexo || "No registrado";
@@ -788,7 +737,6 @@
     if (!p) return;
     document.getElementById("modalTitulo").textContent = "Editar Paciente";
     document.getElementById("modalSub").textContent = "Modificar información médica";
-    poblarSelectDoctores();
     document.getElementById("p_nombre").value = p.nombre || "";
     document.getElementById("p_fecha_nac").value = p.fecha_nac || "";
     document.getElementById("p_edad").value = p.edad || "";
@@ -801,6 +749,7 @@
     document.getElementById("p_bpm_max").value = p.bpm_max || "";
     document.getElementById("p_spo2_min").value = p.spo2_min || "";
     if (p.medico) document.getElementById("p_medico").value = p.medico;
+    if (p.estado) document.getElementById("p_estado").value = p.estado;
     document.getElementById("p_sangre").value = p.sangre || "";
     document.getElementById("p_alergias").value = p.alergias || "";
     document.getElementById("p_enfermedades").value = p.enfermedades || "";
@@ -814,7 +763,6 @@
     if (!pacientes[idx]) return;
     if (confirm("¿Eliminar a " + pacientes[idx].nombre + " del sistema?")) {
       pacientes.splice(idx, 1);
-      guardarPacientesLocales();
       aplicarFiltroYOrden();
       actualizarStats();
       mostrarToast("🗑️ Paciente eliminado");
@@ -857,7 +805,6 @@
             pacientes[0].bpm_actual = datos[0] || "--";
             pacientes[0].spo2_actual = datos[1] || "--";
             pacientes[0].estado = parseInt(datos[0]) > 120 || parseInt(datos[1]) < 90 ? "Alerta" : parseInt(datos[0]) > 100 ? "Observación" : "Estable";
-            guardarPacientesLocales();
             aplicarFiltroYOrden();
             actualizarStats();
           }
