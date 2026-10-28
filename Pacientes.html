@@ -314,7 +314,12 @@
           <div class="form-grupo"><label class="form-label">BPM máximo</label><input type="number" class="form-input" id="p_bpm_max" placeholder="100"/></div>
         </div>
         <div class="form-grupo"><label class="form-label">SpO2 mínimo (%)</label><input type="number" class="form-input" id="p_spo2_min" placeholder="95"/></div>
-        <div class="form-grupo"><label class="form-label">Médico responsable</label><select class="form-select" id="p_medico"><option value="Dr. Benito Díaz">Dr. Benito Díaz - Jefe de Emergencias</option></select></div>
+        <div class="form-grupo">
+          <label class="form-label">Médico responsable</label>
+          <select class="form-select" id="p_medico">
+            <option value="Dr. Benito Díaz">Dr. Benito Díaz - Jefe de Emergencias</option>
+          </select>
+        </div>
       </div>
       <button class="btn-guardar" onclick="cambiarTab(3)">Siguiente <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
@@ -407,9 +412,41 @@
   var coloresAvatar = ["#1565C0","#2E7D32","#6A1B9A","#E65100","#00695C","#AD1457"];
 
   window.onload = function() {
+    poblarSelectDoctores();
+    cargarPacientesLocales();
     actualizarStats();
     cargarDesdeNube();
   };
+
+  // Cargar lista de doctores en el select dinámicamente
+  function poblarSelectDoctores() {
+    var select = document.getElementById("p_medico");
+    if (!select) return;
+
+    var listaDoctores = [
+      "Dr. Benito Díaz - Jefe de Emergencias",
+      "Dra. Carmen Rivas - Cardiología",
+      "Dr. Carlos Pérez - Medicina Interna",
+      "Dra. Ana Sofía Silva - Pediatría",
+      "Dr. José Gregorio Mendoza - Cirugía"
+    ];
+
+    try {
+      var savedDocs = localStorage.getItem("hospital_doctores");
+      if (savedDocs) {
+        var parsed = JSON.parse(savedDocs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          listaDoctores = parsed;
+        }
+      }
+    } catch(e) {}
+
+    var htmlOpts = "";
+    for (var i = 0; i < listaDoctores.length; i++) {
+      htmlOpts += '<option value="' + listaDoctores[i] + '">' + listaDoctores[i] + '</option>';
+    }
+    select.innerHTML = htmlOpts;
+  }
 
   function renderizarLista(lista) {
     var contenedor = document.getElementById("listaPacientes");
@@ -421,11 +458,17 @@
     }
 
     var html = "";
-    lista.forEach(function(p) {
-      // Buscar el índice real dentro del arreglo global 'pacientes'
-      var realIdx = pacientes.findIndex(function(item) {
-        return item.cedula === p.cedula || item.id === p.id;
-      });
+    for (var j = 0; j < lista.length; j++) {
+      var p = lista[j];
+      
+      // Búsqueda de índice real compatible con ES5
+      var realIdx = -1;
+      for (var k = 0; k < pacientes.length; k++) {
+        if (pacientes[k].cedula === p.cedula || pacientes[k].id === p.id) {
+          realIdx = k;
+          break;
+        }
+      }
       if (realIdx === -1) realIdx = 0;
 
       var iniciales = p.nombre ? p.nombre.split(" ").slice(0,2).map(function(n){ return n[0]; }).join("") : "P";
@@ -436,7 +479,7 @@
                 '<div class="avatar" style="background:' + color + '">' + iniciales + '</div>' +
                 '<div class="paciente-info">' +
                   '<div class="paciente-nombre">' + p.nombre + '</div>' +
-                  '<div class="paciente-sub">' + (p.id || "P10024") + ' · ' + (p.cedula || "Sin cédula") + '</div>' +
+                  '<div class="paciente-sub">' + (p.id || "P10024") + ' · Cédula: ' + (p.cedula || "Sin cédula") + ' · <b>Dr(a). ' + (p.medico || "Dr. Benito Díaz") + '</b></div>' +
                   '<div class="paciente-vitales">' +
                     '<span class="vital bpm">♥ ' + (p.bpm_actual || "--") + ' BPM</span>' +
                     '<span class="vital spo2">O₂ ' + (p.spo2_actual || "--") + '%</span>' +
@@ -449,7 +492,7 @@
                   '</div>' +
                 '</div>' +
               '</div>';
-    });
+    }
 
     contenedor.innerHTML = html;
   }
@@ -463,6 +506,7 @@
     document.getElementById("modalTitulo").textContent = "Nuevo Paciente";
     document.getElementById("modalSub").textContent = "Registrar información médica";
     limpiarForm();
+    poblarSelectDoctores();
     cambiarTab(1);
     document.getElementById("modalRegistro").classList.add("activo");
   }
@@ -473,38 +517,50 @@
 
   function cambiarTab(num) {
     for (var i = 1; i <= 3; i++) {
-      document.getElementById("tab" + i).classList.remove("active");
-      document.getElementById("contenido-tab" + i).style.display = "none";
+      var tabBtn = document.getElementById("tab" + i);
+      var tabCont = document.getElementById("contenido-tab" + i);
+      if (tabBtn) tabBtn.classList.remove("active");
+      if (tabCont) tabCont.style.display = "none";
     }
-    document.getElementById("tab" + num).classList.add("active");
-    document.getElementById("contenido-tab" + num).style.display = "block";
+    var activeBtn = document.getElementById("tab" + num);
+    var activeCont = document.getElementById("contenido-tab" + num);
+    if (activeBtn) activeBtn.classList.add("active");
+    if (activeCont) activeCont.style.display = "block";
   }
 
   function limpiarForm() {
-    ["p_nombre","p_fecha_nac","p_edad","p_cedula","p_telefono","p_direccion",
-     "p_bpm_normal","p_bpm_min","p_bpm_max","p_spo2_min","p_alergias",
-     "p_enfermedades","p_medicamentos","p_observaciones"].forEach(function(id) {
-      var el = document.getElementById(id);
+    var ids = ["p_nombre","p_fecha_nac","p_edad","p_cedula","p_telefono","p_direccion",
+               "p_bpm_normal","p_bpm_min","p_bpm_max","p_spo2_min","p_alergias",
+               "p_enfermedades","p_medicamentos","p_observaciones"];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
       if (el) el.value = "";
-    });
+    }
     document.getElementById("p_sexo").value = "";
     document.getElementById("p_sangre").value = "";
   }
 
   function guardarPaciente() {
-    var nombre = document.getElementById("p_nombre").value.trim();
+    var nombreEl = document.getElementById("p_nombre");
+    var cedulaEl = document.getElementById("p_cedula");
+    
+    var nombre = nombreEl ? nombreEl.value.trim() : "";
     if (!nombre) { mostrarToast("⚠️ El nombre es obligatorio"); cambiarTab(1); return; }
     
-    var cedula = document.getElementById("p_cedula").value.trim();
+    var cedula = cedulaEl ? cedulaEl.value.trim() : "";
     if (!cedula) { mostrarToast("⚠️ La cédula es obligatoria"); cambiarTab(1); return; }
 
-    // VALIDACIÓN DE CÉDULA DUPLICADA
+    // VALIDACIÓN DE CÉDULA DUPLICADA (ES5 seguro)
     var cedulaLimpia = cedula.toLowerCase().replace(/[^0-9kK]/g, "");
-    var duplicado = pacientes.find(function(p, i) {
-      if (i === editandoIdx) return false; // Si estamos editando el mismo paciente, ignorar
-      var cExistente = (p.cedula || "").toLowerCase().replace(/[^0-9kK]/g, "");
-      return cExistente !== "" && cExistente === cedulaLimpia;
-    });
+    var duplicado = null;
+    for (var i = 0; i < pacientes.length; i++) {
+      if (i === editandoIdx) continue;
+      var cExistente = (pacientes[i].cedula || "").toLowerCase().replace(/[^0-9kK]/g, "");
+      if (cExistente !== "" && cExistente === cedulaLimpia) {
+        duplicado = pacientes[i];
+        break;
+      }
+    }
 
     if (duplicado) {
       mostrarToast("⚠️ La cédula ya pertenece a " + duplicado.nombre);
@@ -533,7 +589,7 @@
     };
 
     if (editandoIdx >= 0) {
-      Object.assign(pacientes[editandoIdx], datos);
+      pacientes[editandoIdx] = Object.assign(pacientes[editandoIdx], datos);
       mostrarToast("✅ Datos actualizados correctamente");
       editandoIdx = -1;
     } else {
@@ -547,6 +603,8 @@
       mostrarToast("✅ Paciente registrado correctamente");
     }
 
+    // Guardar localmente y aplicar filtros
+    guardarPacientesLocales();
     aplicarFiltroYOrden();
     actualizarStats();
     cerrarModal();
@@ -554,6 +612,26 @@
     if (window.AppInventor) {
       window.AppInventor.setWebViewString("GUARDAR_PACIENTE:" + JSON.stringify(pacientes));
     }
+  }
+
+  function guardarPacientesLocales() {
+    try {
+      localStorage.setItem("hospital_pacientes", JSON.stringify(pacientes));
+    } catch(e) {}
+  }
+
+  function cargarPacientesLocales() {
+    try {
+      var saved = localStorage.getItem("hospital_pacientes");
+      if (saved) {
+        var lista = JSON.parse(saved);
+        if (Array.isArray(lista) && lista.length > 0) {
+          pacientes = lista;
+          aplicarFiltroYOrden();
+          actualizarStats();
+        }
+      }
+    } catch(e) {}
   }
 
   var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx59Yccneq6MCm8MoPeUbgWaGgobOrHk3aBdz7q0fuPt_j6st-xUyAVl_ZmLW2GrKmeTw/exec";
@@ -564,6 +642,7 @@
       .then(function(lista) {
         if (Array.isArray(lista) && lista.length > 0) {
           pacientes = lista;
+          guardarPacientesLocales();
           aplicarFiltroYOrden();
           actualizarStats();
           if (window.AppInventor) {
@@ -581,6 +660,7 @@
         var lista = JSON.parse(json);
         if (Array.isArray(lista)) {
           pacientes = lista;
+          guardarPacientesLocales();
           aplicarFiltroYOrden();
           actualizarStats();
         }
@@ -600,7 +680,10 @@
   function aplicarFiltro(filtro, btn) {
     filtroActual = filtro;
     var contenedor = btn.parentElement;
-    contenedor.querySelectorAll(".filtro-btn").forEach(function(b){ b.classList.remove("activo-filtro"); });
+    var botones = contenedor.querySelectorAll(".filtro-btn");
+    for (var i = 0; i < botones.length; i++) {
+      botones[i].classList.remove("activo-filtro");
+    }
     btn.classList.add("activo-filtro");
     aplicarFiltroYOrden();
   }
@@ -608,7 +691,10 @@
   function aplicarOrden(orden, btn) {
     ordenActual = orden;
     var contenedor = btn.parentElement;
-    contenedor.querySelectorAll(".filtro-btn").forEach(function(b){ b.classList.remove("activo-filtro"); });
+    var botones = contenedor.querySelectorAll(".filtro-btn");
+    for (var i = 0; i < botones.length; i++) {
+      botones[i].classList.remove("activo-filtro");
+    }
     btn.classList.add("activo-filtro");
     aplicarFiltroYOrden();
   }
@@ -616,24 +702,34 @@
   function aplicarFiltroYOrden() {
     var resultado = pacientes.slice();
     
-    // Filtrar por texto si hay búsqueda activa
-    var textoBusqueda = (document.getElementById("inputBuscar").value || "").trim().toLowerCase();
+    var inputBusq = document.getElementById("inputBuscar");
+    var textoBusqueda = inputBusq ? inputBusq.value.trim().toLowerCase() : "";
+    
     if (textoBusqueda !== "") {
-      resultado = resultado.filter(function(p){
-        return (p.nombre && p.nombre.toLowerCase().includes(textoBusqueda)) ||
-               (p.cedula && p.cedula.toLowerCase().includes(textoBusqueda)) ||
-               (p.id && p.id.toLowerCase().includes(textoBusqueda));
-      });
+      var filtradosTemp = [];
+      for (var i = 0; i < resultado.length; i++) {
+        var p = resultado[i];
+        var coincideNom = p.nombre && p.nombre.toLowerCase().indexOf(textoBusqueda) !== -1;
+        var coincideCed = p.cedula && p.cedula.toLowerCase().indexOf(textoBusqueda) !== -1;
+        var coincideId = p.id && p.id.toLowerCase().indexOf(textoBusqueda) !== -1;
+        if (coincideNom || coincideCed || coincideId) {
+          filtradosTemp.push(p);
+        }
+      }
+      resultado = filtradosTemp;
     }
 
-    // Filtrar por estado clínico (Estable, Observación, Alerta)
     if (filtroActual !== "todos") {
-      resultado = resultado.filter(function(p){ 
-        return (p.estado || "Estable") === filtroActual; 
-      });
+      var filtradosEstado = [];
+      for (var i = 0; i < resultado.length; i++) {
+        var est = resultado[i].estado || "Estable";
+        if (est === filtroActual) {
+          filtradosEstado.push(resultado[i]);
+        }
+      }
+      resultado = filtradosEstado;
     }
 
-    // Ordenar resultados
     if (ordenActual === "az") {
       resultado.sort(function(a,b){ return (a.nombre||"").localeCompare(b.nombre||""); });
     } else if (ordenActual === "id") {
@@ -692,6 +788,7 @@
     if (!p) return;
     document.getElementById("modalTitulo").textContent = "Editar Paciente";
     document.getElementById("modalSub").textContent = "Modificar información médica";
+    poblarSelectDoctores();
     document.getElementById("p_nombre").value = p.nombre || "";
     document.getElementById("p_fecha_nac").value = p.fecha_nac || "";
     document.getElementById("p_edad").value = p.edad || "";
@@ -703,6 +800,7 @@
     document.getElementById("p_bpm_min").value = p.bpm_min || "";
     document.getElementById("p_bpm_max").value = p.bpm_max || "";
     document.getElementById("p_spo2_min").value = p.spo2_min || "";
+    if (p.medico) document.getElementById("p_medico").value = p.medico;
     document.getElementById("p_sangre").value = p.sangre || "";
     document.getElementById("p_alergias").value = p.alergias || "";
     document.getElementById("p_enfermedades").value = p.enfermedades || "";
@@ -716,6 +814,7 @@
     if (!pacientes[idx]) return;
     if (confirm("¿Eliminar a " + pacientes[idx].nombre + " del sistema?")) {
       pacientes.splice(idx, 1);
+      guardarPacientesLocales();
       aplicarFiltroYOrden();
       actualizarStats();
       mostrarToast("🗑️ Paciente eliminado");
@@ -724,17 +823,27 @@
   }
 
   function actualizarStats() {
-    document.getElementById("totalPacientes").textContent = pacientes.length;
-    var alertas = pacientes.filter(function(p){ return p.estado === "Alerta"; }).length;
-    document.getElementById("totalAlertas").textContent = alertas;
-    document.getElementById("totalMonitor").textContent = pacientes.length;
+    var totalEl = document.getElementById("totalPacientes");
+    var alertasEl = document.getElementById("totalAlertas");
+    var monitorEl = document.getElementById("totalMonitor");
+    
+    if (totalEl) totalEl.textContent = pacientes.length;
+    var alertas = 0;
+    for (var i = 0; i < pacientes.length; i++) {
+      if (pacientes[i].estado === "Alerta") alertas++;
+    }
+    if (alertasEl) alertasEl.textContent = alertas;
+    if (monitorEl) monitorEl.textContent = pacientes.length;
   }
 
   function mostrarToast(msg) {
     var toast = document.getElementById("toast");
-    document.getElementById("toast-msg").textContent = msg;
-    toast.classList.add("activo");
-    setTimeout(function(){ toast.classList.remove("activo"); }, 3000);
+    var toastMsg = document.getElementById("toast-msg");
+    if (toastMsg) toastMsg.textContent = msg;
+    if (toast) {
+      toast.classList.add("activo");
+      setTimeout(function(){ toast.classList.remove("activo"); }, 3000);
+    }
   }
 
   function revisarComandos() {
@@ -742,16 +851,17 @@
       var texto = window.AppInventor.getWebViewString();
       if (texto && texto !== ultimaCadena) {
         ultimaCadena = texto;
-        if (texto.startsWith("ACTUALIZAR_BPM:")) {
+        if (texto.indexOf("ACTUALIZAR_BPM:") === 0) {
           var datos = texto.replace("ACTUALIZAR_BPM:", "").split(",");
           if (pacientes.length > 0) {
             pacientes[0].bpm_actual = datos[0] || "--";
             pacientes[0].spo2_actual = datos[1] || "--";
             pacientes[0].estado = parseInt(datos[0]) > 120 || parseInt(datos[1]) < 90 ? "Alerta" : parseInt(datos[0]) > 100 ? "Observación" : "Estable";
+            guardarPacientesLocales();
             aplicarFiltroYOrden();
             actualizarStats();
           }
-        } else if (texto.startsWith("CARGAR_PACIENTES:")) {
+        } else if (texto.indexOf("CARGAR_PACIENTES:") === 0) {
           cargarPacientesGuardados(texto.replace("CARGAR_PACIENTES:", ""));
         }
       }
