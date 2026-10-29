@@ -329,9 +329,6 @@
 <div class="footer-text">Sistema seguro de monitoreo</div>
 
 <script>
-  var USUARIO_CORRECTO = "doctorbenitodíaz";
-  var PASSWORD_CORRECTA = "emergencia.1";
-
   function iniciarSesion() {
     var nombre = document.getElementById('inp_nombre').value.trim();
     var usuario = document.getElementById('inp_usuario').value.trim();
@@ -342,12 +339,15 @@
       return;
     }
 
-    if (usuario === USUARIO_CORRECTO && password === PASSWORD_CORRECTA) {
-      if (window.AppInventor) {
-        window.AppInventor.setWebViewString('LOGIN_OK:' + nombre);
-      }
-    } else {
-      mostrarError('Usuario o contraseña incorrectos');
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString('LOGIN_INTENTO:' + usuario + '|' + password + '|' + Date.now());
+    }
+  }
+
+  function loginAprobado() {
+    var nombre = document.getElementById('inp_nombre').value.trim();
+    if (window.AppInventor) {
+      window.AppInventor.setWebViewString('LOGIN_OK:' + nombre);
     }
   }
 
