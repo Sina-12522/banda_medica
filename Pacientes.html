@@ -295,6 +295,7 @@
         </div>
         <div class="form-grupo"><label class="form-label">Teléfono</label><input type="tel" class="form-input" id="p_telefono" placeholder="0412-555-1234"/></div>
         <div class="form-grupo"><label class="form-label">Dirección</label><input type="text" class="form-input" id="p_direccion" placeholder="Av. Principal, Trujillo"/></div>
+        <div class="form-grupo"><label class="form-label">Estado del paciente</label><select class="form-select" id="p_estado"><option value="Estable">Estable</option><option value="Observación">En observación</option><option value="Alerta">Crítico (Alerta)</option></select></div>
       </div>
       <button class="btn-guardar" onclick="cambiarTab(2)">Siguiente <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
@@ -418,7 +419,8 @@
     }
 
     var html = "";
-    lista.forEach(function(p, idx) {
+    lista.forEach(function(p) {
+      var idx = pacientes.indexOf(p);
       var iniciales = p.nombre ? p.nombre.split(" ").slice(0,2).map(function(n){ return n[0]; }).join("") : "P";
       var color = p.color || "#1565C0";
       var claseBadge = p.estado === "Alerta" ? "estado-alerta" : p.estado === "Observación" ? "estado-observacion" : "estado-estable";
@@ -480,6 +482,11 @@
     });
     document.getElementById("p_sexo").value = "";
     document.getElementById("p_sangre").value = "";
+    document.getElementById("p_estado").value = "Estable";
+  }
+
+  function normalizarCedula(c) {
+    return String(c || "").toUpperCase().replace(/[^0-9A-Z]/g, "").replace(/^[VEJGP](?=\d)/, "");
   }
 
   function guardarPaciente() {
@@ -487,6 +494,15 @@
     if (!nombre) { mostrarToast("⚠️ El nombre es obligatorio"); cambiarTab(1); return; }
     var cedula = document.getElementById("p_cedula").value.trim();
     if (!cedula) { mostrarToast("⚠️ La cédula es obligatoria"); cambiarTab(1); return; }
+
+    var cedulaNueva = normalizarCedula(cedula);
+    for (var i = 0; i < pacientes.length; i++) {
+      if (i !== editandoIdx && normalizarCedula(pacientes[i].cedula) === cedulaNueva) {
+        mostrarToast("⚠️ Esta cédula ya existe (" + pacientes[i].nombre + ")");
+        cambiarTab(1);
+        return;
+      }
+    }
 
     var datos = {
       nombre: nombre,
@@ -496,6 +512,7 @@
       cedula: cedula,
       telefono: document.getElementById("p_telefono").value,
       direccion: document.getElementById("p_direccion").value,
+      estado: document.getElementById("p_estado").value || "Estable",
       bpm_normal: document.getElementById("p_bpm_normal").value || "75",
       bpm_min: document.getElementById("p_bpm_min").value || "60",
       bpm_max: document.getElementById("p_bpm_max").value || "100",
@@ -516,7 +533,6 @@
       datos.id = "P" + (10024 + pacientes.length);
       datos.bpm_actual = "--";
       datos.spo2_actual = "--";
-      datos.estado = "Estable";
       datos.fecha_registro = new Date().toLocaleDateString("es-VE");
       datos.color = coloresAvatar[pacientes.length % coloresAvatar.length];
       pacientes.push(datos);
@@ -653,6 +669,7 @@
     document.getElementById("p_cedula").value = p.cedula || "";
     document.getElementById("p_telefono").value = p.telefono || "";
     document.getElementById("p_direccion").value = p.direccion || "";
+    document.getElementById("p_estado").value = p.estado || "Estable";
     document.getElementById("p_bpm_normal").value = p.bpm_normal || "";
     document.getElementById("p_bpm_min").value = p.bpm_min || "";
     document.getElementById("p_bpm_max").value = p.bpm_max || "";
