@@ -59,25 +59,6 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .datos-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .dato-item {
-    background: #f8fbff;
-    border-radius: 14px;
-    padding: 14px;
-    text-align: center;
-    border: 1px solid #e3eaf5;
-    transition: transform 0.2s ease;
-  }
-  .dato-icon { font-size: 20px; margin-bottom: 6px; }
-  .dato-label { font-size: 11px; color: #57606f; margin-bottom: 4px; font-weight: 600; }
-  .dato-valor { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-  .dato-valor.bpm { color: #e53935; }
-  .dato-valor.spo2 { color: #1976D2; }
-  .dato-unidad { font-size: 11px; color: #8c9ba5; font-weight: 500; }
   
   .analisis-resultado {
     display: flex;
@@ -303,32 +284,6 @@
 
 <div class="content">
 
-  <!-- DATOS (Intactos para no romper tus triggers de la banda) -->
-  <div class="card">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      Datos analizados
-    </div>
-    <div class="datos-grid">
-      <div class="dato-item">
-        <div class="dato-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </div>
-        <div class="dato-label">Ritmo cardíaco</div>
-        <div class="dato-valor bpm" id="valorBPM">--</div>
-        <div class="dato-unidad">lpm</div>
-      </div>
-      <div class="dato-item">
-        <div class="dato-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-        </div>
-        <div class="dato-label">Oxígeno en sangre</div>
-        <div class="dato-valor spo2" id="valorSpO2">--</div>
-        <div class="dato-unidad">%</div>
-      </div>
-    </div>
-  </div>
-
   <!-- ANÁLISIS GEMINI -->
   <div class="card">
     <div class="card-title">
@@ -347,7 +302,7 @@
     </button>
   </div>
 
-  <!-- CHAT (Estética limpia y limpia de asteriscos) -->
+  <!-- CHAT -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -377,7 +332,7 @@
   </div>
 </div>
 
-<!-- NAVBAR (Tus botones originales intactos) -->
+<!-- NAVBAR -->
 <div class="navbar">
   <button class="nav-item" onclick="navegar('IR_SCREEN2')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -421,10 +376,8 @@
   let spo2 = "--";
   let ultimaCadena = "";
 
-  // Función para limpiar asteriscos y formatear negritas limpias
   function limpiarTextoMarkdown(texto) {
     if (!texto) return "";
-    // Reemplaza **texto** por <strong>texto</strong> para una estética limpia
     return texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   }
 
@@ -443,8 +396,6 @@
       const partes = datos.split(",");
       bpm = partes[0] || "--";
       spo2 = partes[1] || "--";
-      document.getElementById("valorBPM").textContent = bpm;
-      document.getElementById("valorSpO2").textContent = spo2;
     } catch(e) {
       console.error("Error recibiendo datos:", e);
     }
