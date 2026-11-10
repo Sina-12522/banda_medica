@@ -103,7 +103,7 @@
   .tab-detalle { flex: 1; padding: 8px 4px; font-size: 10px; font-weight: 600; text-align: center; border-radius: 9px; border: none; background: none; color: var(--gris); cursor: pointer; }
   .tab-detalle.active { background: var(--azul); color: white; }
 
-  .metricas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .metricas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .metrica-card { background: var(--blanco); border-radius: 14px; padding: 12px 10px; text-align: center; border: 1px solid var(--borde); }
   .metrica-icono { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
   .metrica-icono svg { width: 18px; height: 18px; }
@@ -163,7 +163,7 @@
   .pdf-dato-key { color: var(--gris); }
   .pdf-dato-val { font-weight: 600; color: var(--texto); }
 
-  .pdf-metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+  .pdf-metricas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 12px; }
   .pdf-metrica { border: 1px solid var(--borde); border-radius: 10px; padding: 8px 6px; text-align: center; }
   .pdf-metrica-val { font-size: 16px; font-weight: 800; color: var(--azul); }
   .pdf-metrica-label { font-size: 9px; color: var(--gris); margin-top: 2px; }
@@ -270,7 +270,7 @@
         <div class="ficha-info">
           <div class="ficha-nombre" id="det-nombre">—</div>
           <div class="ficha-sub" id="det-sub">—</div>
-          <div class="badge-estado">● Normal</div>
+          <div class="badge-estado" id="det-estado">● —</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:10px;color:var(--gris)" id="det-fecha">—</div>
@@ -280,7 +280,6 @@
       <div class="tabs-detalle">
         <button class="tab-detalle active" onclick="cambiarTabDetalle(0, this)">Resumen</button>
         <button class="tab-detalle" onclick="cambiarTabDetalle(1, this)">Tendencias</button>
-        <button class="tab-detalle" onclick="cambiarTabDetalle(2, this)">Dispositivo</button>
       </div>
 
       <!-- TAB 0: RESUMEN -->
@@ -304,15 +303,6 @@
             <div class="metrica-label">Oxígeno en sangre</div>
             <div class="metrica-rango">Normal: 95-100%</div>
           </div>
-          <div class="metrica-card">
-            <div class="metrica-icono" style="background:#E8F5E9;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            </div>
-            <div class="metrica-valor" style="color:#2E7D32;font-size:13px;margin-top:4px;">Normal</div>
-            <div class="metrica-unidad"> </div>
-            <div class="metrica-label">Electrocardiograma</div>
-            <div class="metrica-rango">Sin anomalías</div>
-          </div>
         </div>
       </div>
 
@@ -331,20 +321,6 @@
             Oxígeno en sangre — últimas 8 horas
           </div>
           <canvas id="graficaSPO2" class="grafica-canvas"></canvas>
-        </div>
-      </div>
-
-      <!-- TAB 2: DISPOSITIVO -->
-      <div class="tab-contenido" id="tab-dispositivo">
-        <div class="dispositivo-card">
-          <div class="dispositivo-icono">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-          </div>
-          <div class="dispositivo-info">
-            <div class="dispositivo-nombre">Banda Inteligente ESP32</div>
-            <div class="dispositivo-sub">● Conectado</div>
-          </div>
-          <div class="dispositivo-bateria">🔋 85%</div>
         </div>
       </div>
 
@@ -414,10 +390,6 @@
             <div class="pdf-metrica">
               <div class="pdf-metrica-val" id="pdf-spo2" style="color:#1565C0;">—</div>
               <div class="pdf-metrica-label">💧 SpO2 %</div>
-            </div>
-            <div class="pdf-metrica">
-              <div class="pdf-metrica-val" style="color:#2E7D32;font-size:13px;">Normal</div>
-              <div class="pdf-metrica-label">〜 ECG</div>
             </div>
           </div>
         </div>
@@ -509,6 +481,14 @@
     renderizarLista(filtrados);
   }
 
+  function infoEstado(e) {
+    var t = String(e || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (t.indexOf('alert') !== -1 || t.indexOf('crit') !== -1) return { tipo: 'alerta', texto: e, fondo: '#FFEBEE', color: '#C62828' };
+    if (t.indexOf('observ') !== -1) return { tipo: 'observacion', texto: e, fondo: '#FFF3E0', color: '#E65100' };
+    if (t) return { tipo: 'estable', texto: e, fondo: '#E8F5E9', color: '#2E7D32' };
+    return { tipo: 'ninguno', texto: 'Sin estado', fondo: '#ECEFF1', color: '#607D8B' };
+  }
+
   function abrirDetalle(idx) {
     pacienteActual = pacientes[idx];
     var p = pacienteActual;
@@ -524,6 +504,12 @@
     document.getElementById('det-bpm').textContent = p.bpm_normal||'—';
     document.getElementById('det-spo2').textContent = p.spo2_min||'—';
 
+    var infEstado = infoEstado(p.estado);
+    var badgeEstado = document.getElementById('det-estado');
+    badgeEstado.textContent = '● ' + infEstado.texto;
+    badgeEstado.style.background = infEstado.fondo;
+    badgeEstado.style.color = infEstado.color;
+
     cambiarTabDetalle(0, document.querySelector('.tab-detalle'));
     document.getElementById('modalDetalle').classList.add('activo');
     setTimeout(function(){ dibujarGraficas(p); }, 300);
@@ -538,7 +524,7 @@
   function cambiarTabDetalle(num, btn) {
     document.querySelectorAll('.tab-contenido').forEach(function(t){ t.classList.remove('activo'); });
     document.querySelectorAll('.tab-detalle').forEach(function(t){ t.classList.remove('active'); });
-    var tabs = ['tab-resumen','tab-tendencias','tab-dispositivo'];
+    var tabs = ['tab-resumen','tab-tendencias'];
     document.getElementById(tabs[num]).classList.add('activo');
     document.querySelectorAll('.tab-detalle')[num].classList.add('active');
     if (num === 1 && pacienteActual) {
@@ -614,7 +600,7 @@
     if (p.enfermedades) obs += 'Enfermedades: ' + p.enfermedades + '. ';
     if (p.medicamentos) obs += 'Medicamentos: ' + p.medicamentos + '. ';
     if (p.alergias) obs += 'Alergias: ' + p.alergias + '. ';
-    if (!obs) obs = 'Paciente estable. Continuar con monitoreo rutinario.';
+    if (!obs) obs = (infoEstado(p.estado).tipo === 'estable') ? 'Paciente estable. Continuar con monitoreo rutinario.' : 'Sin observaciones registradas.';
     document.getElementById('pdf-obs').textContent = obs;
 
     document.getElementById('modalPDF').classList.add('activo');
