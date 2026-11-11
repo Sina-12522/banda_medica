@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Monitoreo ECG - UPTT</title>
+    <!-- ✅ NUEVO: Librería para generar PDF (necesita internet la primera vez) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -13,7 +15,6 @@
         }
         h2 { margin: 5px 0; font-size: 18px; color: #00ffcc; }
         #info { font-size: 14px; margin-bottom: 5px; }
-        /* Cuadrícula de papel milimetrado simulada */
         canvas {
             background-color: #ffe6e6;
             background-image: 
@@ -41,11 +42,9 @@
     <h2>Trazado ECG - AD8232</h2>
     <div id="info">Picos detectados (Ondas R): <span id="contadorPicos">0</span></div>
     
-    <!-- Lienzo donde se dibuja el electrocardiograma -->
     <canvas id="ecgCanvas" width="350" height="250"></canvas>
     
     <br>
-    <!-- Botón aislado para exportar la vista a PDF / Imagen -->
     <button class="btn" onclick="exportarPDF()">Exportar ECG a PDF</button>
 
     <script>
@@ -56,8 +55,7 @@
         let picos = 0;
         let ultimoValorAlto = false;
 
-        // Configuración inicial de la línea del ECG
-        ctx.strokeStyle = '#990000'; // Color trazo ECG clásico
+        ctx.strokeStyle = '#990000';
         ctx.lineWidth = 2;
         ctx.beginPath();
 
@@ -65,10 +63,8 @@
             let valor = parseInt(valorTexto);
             if (isNaN(valor)) return;
 
-            // Mapear el valor analógico del AD8232 a la altura del canvas (0 a 250)
             let yActual = canvas.height - (valor * (canvas.height / 1023));
 
-            // Detección de picos (Umbral ajustable según tu señal)
             if (valor > 700 && !ultimoValorAlto) {
                 picos++;
                 document.getElementById('contadorPicos').innerText = picos;
@@ -77,13 +73,11 @@
                 ultimoValorAlto = false;
             }
 
-            // Dibujar en el lienzo en tiempo real
             ctx.lineTo(x, yActual);
             ctx.stroke();
 
-            x += 2; // Velocidad de avance del trazo
+            x += 2;
             if (x > canvas.width) {
-                // Limpiar pantalla al llegar al final y reiniciar
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 x = 0;
                 ctx.beginPath();
@@ -91,16 +85,19 @@
             }
         }
 
-        // Función blindada para forzar la apertura del panel de impresión de Android
+        // ✅ MODIFICADO: Ahora genera el PDF con html2pdf.js (WebViewExtra lo capturará)
         function exportarPDF() {
-            try {
-                window.print();
-            } catch (error) {
-                alert("No se pudo abrir el menú de impresión en este dispositivo.");
-            }
+            const opciones = {
+                margin: 10,
+                filename: 'ECG_Reporte.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opciones).from(document.body).save();
         }
 
-        // Simulación de prueba por si quieres verificar cómo corre visualmente
+        // Simulación (opcional, para probar el PDF en la Pantalla 7 sin la banda)
         // setInterval(() => { let valAleatorio = Math.random() * 300 + 400; recibirDatoECG(valAleatorio); }, 50);
     </script>
 </body>
