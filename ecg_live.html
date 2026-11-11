@@ -91,9 +91,13 @@
             }
         }
 
-        // Función aislada para generar PDF mediante la impresión limpia del navegador/WebViewer
+        // Función blindada para forzar la apertura del panel de impresión de Android
         function exportarPDF() {
-            window.print(); // Abre el panel nativo de impresión/guardar como PDF de Android
+            try {
+                window.print();
+            } catch (error) {
+                alert("No se pudo abrir el menú de impresión en este dispositivo.");
+            }
         }
 
         // Simulación de prueba por si quieres verificar cómo corre visualmente
