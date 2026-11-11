@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitoreo ECG - UPTT</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h2 { margin: 5px 0; font-size: 18px; color: #00ffcc; }
+        #info { font-size: 14px; margin-bottom: 5px; }
+        /* Cuadrícula de papel milimetrado simulada */
+        canvas {
+            background-color: #ffe6e6;
+            background-image: 
+                linear-gradient(to right, #ffb3b3 1px, transparent 1px),
+                linear-gradient(to bottom, #ffb3b3 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 2px solid #ff4d4d;
+            box-shadow: 0px 0px 10px rgba(255,0,0,0.5);
+        }
+        .btn {
+            background-color: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Trazado ECG - AD8232</h2>
+    <div id="info">Picos detectados (Ondas R): <span id="contadorPicos">0</span></div>
+    
+    <!-- Lienzo donde se dibuja el electrocardiograma -->
+    <canvas id="ecgCanvas" width="350" height="250"></canvas>
+    
+    <br>
+    <!-- Botón aislado para exportar la vista a PDF / Imagen -->
+    <button class="btn" onclick="exportarPDF()">Exportar ECG a PDF</button>
+
+    <script>
+        const canvas = document.getElementById('ecgCanvas');
+        const ctx = canvas.getContext('2d');
+        let x = 0;
+        let yAnterior = 125;
+        let picos = 0;
+        let ultimoValorAlto = false;
+
+        // Configuración inicial de la línea del ECG
+        ctx.strokeStyle = '#990000'; // Color trazo ECG clásico
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        function recibirDatoECG(valorTexto) {
+            let valor = parseInt(valorTexto);
+            if (isNaN(valor)) return;
+
+            // Mapear el valor analógico del AD8232 a la altura del canvas (0 a 250)
+            let yActual = canvas.height - (valor * (canvas.height / 1023));
+
+            // Detección de picos (Umbral ajustable según tu señal)
+            if (valor > 700 && !ultimoValorAlto) {
+                picos++;
+                document.getElementById('contadorPicos').innerText = picos;
+                ultimoValorAlto = true;
+            } else if (valor < 500) {
+                ultimoValorAlto = false;
+            }
+
+            // Dibujar en el lienzo en tiempo real
+            ctx.lineTo(x, yActual);
+            ctx.stroke();
+
+            x += 2; // Velocidad de avance del trazo
+            if (x > canvas.width) {
+                // Limpiar pantalla al llegar al final y reiniciar
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                x = 0;
+                ctx.beginPath();
+                ctx.moveTo(x, yActual);
+            }
+        }
+
+        // Función aislada para generar PDF mediante la impresión limpia del navegador/WebViewer
+        function exportarPDF() {
+            window.print(); // Abre el panel nativo de impresión/guardar como PDF de Android
+        }
+
+        // Simulación de prueba por si quieres verificar cómo corre visualmente
+        // setInterval(() => { let valAleatorio = Math.random() * 300 + 400; recibirDatoECG(valAleatorio); }, 50);
+    </script>
+</body>
+</html>
